@@ -339,7 +339,7 @@ inline std::string Spef::dump() const {
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 
 using RuleToken = pegtl::until<pegtl::at<pegtl::space>>;
-using RuleDontCare = pegtl::plus<pegtl::space>;
+using RuleDontCare = pegtl::star<pegtl::space>;
 
 template<typename T>
 struct Action: pegtl::nothing<T>
@@ -353,7 +353,7 @@ struct QuotedString: pegtl::seq<Quote, pegtl::until<Quote>>
 struct Header: pegtl::plus<pegtl::seq<QuotedString, pegtl::star<RuleDontCare, QuotedString>>>
 {};
 
-struct Divider: pegtl::any
+struct Divider: pegtl::any 
 {};
 template<>
 struct Action<Divider>  
@@ -368,7 +368,7 @@ struct Action<Divider>
   };
 };
 
-struct Delimiter: pegtl::any
+struct Delimiter: pegtl::any 
 {};
 template<>
 struct Action<Delimiter>  
@@ -810,6 +810,7 @@ struct Action<RuleInputEnd>
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     if(in.size() != 0){
+      std::cout << "=" << in.string() << "=\n";
       throw tao::pegtl::parse_error("Unrecognized token", in);
     }
   }
@@ -819,7 +820,7 @@ struct Action<RuleInputEnd>
 
 
 
-// Spef Top Rule -----------------------------------------------------------------------------------
+// Spef Top Rule ----------------------------------------------------------------------------------- 
 struct RuleSpef: pegtl::must<pegtl::star<pegtl::space>,
 
   pegtl::opt<pegtl::seq<RuleStandard,     RuleDontCare>>,
@@ -855,10 +856,9 @@ struct RuleSpef: pegtl::must<pegtl::star<pegtl::space>,
 {};
 
 
-
 // Error control ----------------------------------------------------------------------------------
 template<typename Rule>
-struct ParserControl : tao::pegtl::normal<Rule>
+struct Control : tao::pegtl::normal<Rule>
 {
    static const std::string error_message;
 
@@ -869,12 +869,12 @@ struct ParserControl : tao::pegtl::normal<Rule>
    }
 };
 
-template<typename T> const std::string ParserControl<T>::error_message = "Fail to match the Spef rule: \033[31m" + 
+template<typename T> const std::string Control<T>::error_message = "Fail to match the Spef rule: \033[31m" + 
   tao::pegtl::internal::demangle< T>() + "\033[0m";
 
 
 
-inline bool parse_spef(const std::experimental::filesystem::path &p, Spef& sf){
+inline bool parse_spef_file(const std::experimental::filesystem::path &p, Spef& sf){
   if(not std::experimental::filesystem::exists(p)){
     std::cout << "The provided path does not exist!\n";
     return false;
@@ -900,12 +900,15 @@ inline bool parse_spef(const std::experimental::filesystem::path &p, Spef& sf){
     }
   }
 
+
+
   tao::pegtl::memory_input<> in(buffer, "");
   try{
-    tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::ParserControl>(in, sf);
+    tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, sf);
     return true;
   }
   catch(const tao::pegtl::parse_error& e){
+
     std::cout << e.what() << std::endl;
     const auto p = e.positions.front();
     std::cout << "Fail at line " << p.line << ":\n";
