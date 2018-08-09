@@ -810,7 +810,7 @@ struct Action<RuleInputEnd>
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     if(in.size() != 0){
-      std::cout << "=" << in.string() << "=\n";
+      std::cout << "=>" << in.string() << "<=\n";
       throw tao::pegtl::parse_error("Unrecognized token", in);
     }
   }
@@ -822,17 +822,19 @@ struct Action<RuleInputEnd>
 
 // Spef Top Rule ----------------------------------------------------------------------------------- 
 struct RuleSpef: pegtl::must<pegtl::star<pegtl::space>,
-
-  pegtl::opt<pegtl::seq<RuleStandard,     RuleDontCare>>,
-  pegtl::opt<pegtl::seq<RuleDesign,       RuleDontCare>>,
-  pegtl::opt<pegtl::seq<RuleDate,         RuleDontCare>>,
-  pegtl::opt<pegtl::seq<RuleVendor,       RuleDontCare>>,
-  pegtl::opt<pegtl::seq<RuleProgram,      RuleDontCare>>,
-  pegtl::opt<pegtl::seq<RuleVersion,      RuleDontCare>>,
-  pegtl::opt<pegtl::seq<RuleDesignFlow,   RuleDontCare>>,
-  pegtl::opt<pegtl::seq<RuleDivider,      RuleDontCare>>,
-  pegtl::opt<pegtl::seq<RuleDelimiter,    RuleDontCare>>, 
-  pegtl::opt<pegtl::seq<RuleBusDelimiter, RuleDontCare>>,
+  pegtl::rep_max<10, 
+    pegtl::sor<
+      pegtl::seq<RuleStandard,     RuleDontCare>,
+      pegtl::seq<RuleDesign,       RuleDontCare>,
+      pegtl::seq<RuleDate,         RuleDontCare>,
+      pegtl::seq<RuleVendor,       RuleDontCare>,
+      pegtl::seq<RuleProgram,      RuleDontCare>,
+      pegtl::seq<RuleVersion,      RuleDontCare>,
+      pegtl::seq<RuleDesignFlow,   RuleDontCare>,
+      pegtl::seq<RuleDivider,      RuleDontCare>,
+      pegtl::seq<RuleDelimiter,    RuleDontCare>, 
+      pegtl::seq<RuleBusDelimiter, RuleDontCare>>
+  >,
 
   pegtl::rep_max<4, pegtl::seq<RuleUnit, RuleDontCare>>,
 
