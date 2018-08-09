@@ -347,7 +347,7 @@ struct Action: pegtl::nothing<T>
 
 
 using Quote = pegtl::string<'"'>;
-struct QuotedString: pegtl::seq<Quote, pegtl::until<Quote>>
+struct QuotedString: pegtl::if_must<Quote, pegtl::until<Quote>>
 {};
 
 struct Header: pegtl::plus<pegtl::seq<QuotedString, pegtl::star<RuleDontCare, QuotedString>>>
@@ -410,7 +410,7 @@ const char* header_begin(const char* beg){
   return beg;
 }
 
-struct RuleStandard: pegtl::seq<TAO_PEGTL_STRING("*SPEF"), pegtl::must<RuleDontCare, Header>>
+struct RuleStandard: pegtl::seq<TAO_PEGTL_STRING("*SPEF"), pegtl::opt<RuleDontCare, Header>>
 {};
 template<>
 struct Action<RuleStandard>  
@@ -421,7 +421,7 @@ struct Action<RuleStandard>
   };
 };
 
-struct RuleDesign: pegtl::seq<TAO_PEGTL_STRING("*DESIGN"), pegtl::must<RuleDontCare, Header>>
+struct RuleDesign: pegtl::seq<TAO_PEGTL_STRING("*DESIGN"), pegtl::opt<RuleDontCare, Header>>
 {};
 template<>
 struct Action<RuleDesign>  
@@ -432,7 +432,7 @@ struct Action<RuleDesign>
   };
 };
 
-struct RuleDate: pegtl::seq<TAO_PEGTL_STRING("*DATE"), pegtl::must<RuleDontCare, Header>>
+struct RuleDate: pegtl::seq<TAO_PEGTL_STRING("*DATE"), pegtl::opt<RuleDontCare, Header>>
 {};
 template<>
 struct Action<RuleDate>  
@@ -444,7 +444,7 @@ struct Action<RuleDate>
 };
 
 
-struct RuleVendor: pegtl::seq<TAO_PEGTL_STRING("*VENDOR"), pegtl::must<RuleDontCare, Header>>
+struct RuleVendor: pegtl::seq<TAO_PEGTL_STRING("*VENDOR"), pegtl::opt<RuleDontCare, Header>>
 {};
 template<>
 struct Action<RuleVendor>  
@@ -456,7 +456,7 @@ struct Action<RuleVendor>
 };
 
 
-struct RuleProgram: pegtl::seq<TAO_PEGTL_STRING("*PROGRAM"), pegtl::must<RuleDontCare, Header>>
+struct RuleProgram: pegtl::seq<TAO_PEGTL_STRING("*PROGRAM"), pegtl::opt<RuleDontCare, Header>>
 {};
 template<>
 struct Action<RuleProgram>  
@@ -467,7 +467,7 @@ struct Action<RuleProgram>
   };
 };
 
-struct RuleVersion: pegtl::seq<TAO_PEGTL_STRING("*VERSION"), pegtl::must<RuleDontCare, Header>>
+struct RuleVersion: pegtl::seq<TAO_PEGTL_STRING("*VERSION"), pegtl::opt<RuleDontCare, Header>>
 {};
 template<>
 struct Action<RuleVersion>  
@@ -478,7 +478,7 @@ struct Action<RuleVersion>
   };
 };
 
-struct RuleDesignFlow: pegtl::seq<TAO_PEGTL_STRING("*DESIGN_FLOW"), pegtl::must<RuleDontCare, Header>>
+struct RuleDesignFlow: pegtl::seq<TAO_PEGTL_STRING("*DESIGN_FLOW"), pegtl::opt<RuleDontCare, Header>>
 {};
 template<>
 struct Action<RuleDesignFlow>  
@@ -489,13 +489,13 @@ struct Action<RuleDesignFlow>
   };
 };
 
-struct RuleDivider: pegtl::seq<TAO_PEGTL_STRING("*DIVIDER"), pegtl::must<RuleDontCare, Divider>>
+struct RuleDivider: pegtl::seq<TAO_PEGTL_STRING("*DIVIDER"), pegtl::opt<RuleDontCare, Divider>>
 {};
 
-struct RuleDelimiter: pegtl::seq<TAO_PEGTL_STRING("*DELIMITER"), pegtl::must<RuleDontCare, Delimiter>>
+struct RuleDelimiter: pegtl::seq<TAO_PEGTL_STRING("*DELIMITER"), pegtl::opt<RuleDontCare, Delimiter>>
 {};
 
-struct RuleBusDelimiter: pegtl::seq<TAO_PEGTL_STRING("*BUS_DELIMITER"), pegtl::must<RuleDontCare, BusDelimiter>>
+struct RuleBusDelimiter: pegtl::seq<TAO_PEGTL_STRING("*BUS_DELIMITER"), pegtl::opt<RuleDontCare, BusDelimiter>>
 {};
 
 
