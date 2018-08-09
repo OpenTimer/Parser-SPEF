@@ -57,42 +57,10 @@ namespace double_
 
 
 
-// TODO:
-/*
-void split_on_space1(
-  const char* beg,
-  const char* end,  
-  std::vector<std::string_view>& tokens
-) {
 
-  tokens.clear();
-  size_t len {0};
-  const char* itr {beg};
-  while(itr != end and *itr != 0){
-    if(std::isspace(*itr)) {
-      // Consume space
-      while(itr != end and *itr != 0 and std::isspace(*itr)){
-        ++ itr;
-      }
-    }
-    else{
-      len = 0;
-      // Consume non-space
-      while(itr != end and *itr != 0 and not std::isspace(*itr)){
-        itr ++;
-        len ++;
-      }
-      if(len > 0){
-        tokens.push_back({itr-len, len});
-      }
-    }
-  }
-}
-*/
 
 
 // Function: split_on_space 
-///*
 void split_on_space(const char* beg, const char* end, std::vector<std::string_view>& tokens) {
 
   // Parse the token.
@@ -120,7 +88,6 @@ void split_on_space(const char* beg, const char* end, std::vector<std::string_vi
     tokens.push_back({token, len});
   } 
 }
-//*/
 
 
 
@@ -307,6 +274,7 @@ inline void Spef::clear(){
   divider.clear();
   delimiter.clear();
   bus_delimiter.clear();
+
   time_unit.clear();
   capacitance_unit.clear();
   resistance_unit.clear();
@@ -366,7 +334,9 @@ inline std::string Spef::dump() const {
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 
-using RuleToken = pegtl::until<pegtl::at<pegtl::space>>;
+using RuleToken = pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>, pegtl::eof>>>;
+//using RuleToken = pegtl::sor<pegtl::until<pegtl::at<pegtl::space>>, pegtl::until<pegtl::at<pegtl::one<'*'>>>>;
+//pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>>>>;
 using RuleDontCare = pegtl::star<pegtl::space>;
 using RuleSpace = pegtl::plus<pegtl::space>;
 
@@ -531,9 +501,7 @@ struct RuleBusDelimiter: pegtl::seq<TAO_PEGTL_STRING("*BUS_DELIMITER"), pegtl::o
 
 struct RuleUnit: pegtl::seq<TAO_PEGTL_STRING("*"), pegtl::one<'T','C','R','L'>,
   TAO_PEGTL_STRING("_UNIT"), 
-  pegtl::must<RuleSpace, double_::rule, 
-    RuleSpace, pegtl::opt<pegtl::one<'K','M','U','N','P','F'>>, 
-    pegtl::sor<TAO_PEGTL_STRING("HENRY"), TAO_PEGTL_STRING("OHM"), pegtl::one<'S','F','H'>>>
+  pegtl::must<RuleSpace, double_::rule, RuleSpace, RuleToken>
 >
 {};
 template <>
@@ -895,7 +863,7 @@ struct Control : tao::pegtl::normal<Rule>
 {
    static const std::string error_message;
 
-   template< typename Input, typename... States >
+   template<typename Input, typename... States>
    static void raise(const Input& in, States&&...)
    {
      throw tao::pegtl::parse_error(error_message, in);
@@ -906,6 +874,9 @@ template<typename T> const std::string Control<T>::error_message = "Fail to matc
   tao::pegtl::internal::demangle< T>() + "\033[0m";
 
 
+
+
+// API for parsing --------------------------------------------------------------------------------
 
 inline bool parse_spef_file(const std::experimental::filesystem::path &p, Spef& sf){
   if(not std::experimental::filesystem::exists(p)){

@@ -19,20 +19,24 @@ TEST_CASE("Header.Random"){
     "*DESIGN_FLOW", "*DIVIDER", "*DELIMITER", "*BUS_DELIMITER"
   };
   std::vector<std::string> units = {
-    "T_UNIT", "C_UNIT", "R_UNIT", "L_UNIT"
+    "*T_UNIT", "*C_UNIT", "*R_UNIT", "*L_UNIT"
   };
   std::unordered_map<std::string_view, std::string> kvp = {
     {"*SPEF", ""}, {"*DESIGN", ""}, {"*DATE", ""}, {"*VENDOR", ""},
     {"*PROGRAM", ""}, {"*VERSION", ""}, {"*DESIGN_FLOW", ""}, {"*DIVIDER", ""},
-    {"*DELIMITER", ""}, {"*BUS_DELIMITER", ""}
+    {"*DELIMITER", ""}, {"*BUS_DELIMITER", ""}, {"*T_UNIT", ""}, {"*C_UNIT", ""}, 
+    {"*R_UNIT", ""}, {"*L_UNIT", ""}
   };
 
+  const int str_length {20};
+
   auto valid_char = [](){
-    // 33 - 126 are valid chars except 34(") and 39 (')
+    // 33 - 126 are valid chars except 34(") and 39 (') 42(*)
     int c = rand()%94+33;
-    for(; c == 34 or c == 39;){
+    while(c == 34 or c == 39 or c == 42){
       c = rand()%94+33;
     }
+    assert(not std::isspace(c) and c < 127 and c >= 33);
     return c;
   };
 
@@ -48,6 +52,11 @@ TEST_CASE("Header.Random"){
     std::generate(s.begin(), s.end(), [&](){return space[rand()%space.size()];});
     return s;
   };
+
+  auto rand_unit = [&](){
+    return std::to_string((double)rand() / RAND_MAX) + rand_space(rand()%space.size()+1) + 
+      rand_str(rand()%str_length+1);
+  };
  
 
   spef::Spef data;
@@ -55,12 +64,38 @@ TEST_CASE("Header.Random"){
   auto parse = [&data, &buffer](){ 
     data.clear();
     tao::pegtl::memory_input<> in(buffer, "");
-    tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, data);
+    try{
+      tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, data);
+    }
+    catch(const tao::pegtl::parse_error& e){ 
+
+      std::cout << e.what() << std::endl;                                                                                                
+      const auto p = e.positions.front();
+      std::cout << "Fail at line " << p.line << ":\n";
+      std::cout << "  " << in.line_as_string(p) << '\n';
+      std::cout << "  " << std::string(p.byte_in_line, ' ') << "\033[31m^\033[0m" << '\n';
+
+      //{
+      //  std::ofstream ofs("FAIL");
+      //  ofs << buffer;
+      //  ofs.close();
+      //}
+      //{
+      //  std::ofstream ofs("FAIL_INT");
+      //  for(size_t i=0; i<buffer.size(); i++){
+      //    ofs << (int)(buffer[i]) << "=" << buffer[i] << '\n';
+      //  }
+      //  ofs.close();
+      //}
+      exit(1);
+    }
+
   };
 
 
   for(int i=0; i<10000; i++){
     std::random_shuffle(headers.begin(), headers.end());
+    std::random_shuffle(units.begin(), units.end());
 
     buffer.clear();  
 
@@ -72,10 +107,16 @@ TEST_CASE("Header.Random"){
         kvp.at(headers[i]) = rand_str(1) + rand_space(rand()%space.size()) + rand_str(1);
       }
       else{
-        kvp.at(headers[i]) = '"' + rand_str(rand()%20+1) + '"';
+        kvp.at(headers[i]) = '"' + rand_str(rand()%str_length+1) + '"';
       }
       buffer.append(headers[i]).append(rand_space(rand()%space.size()+1))
         .append(kvp.at(headers[i])).append(rand_space(rand()%space.size()));
+    }
+
+    for(size_t i=0; i<units.size(); ++i){
+      kvp.at(units[i]) = rand_unit();
+      buffer.append(units[i]).append(rand_space(rand()%space.size()+1))
+        .append(kvp.at(units[i])).append(rand_space(rand()%space.size()));
     }
 
     //std::cout << i << "  buffer = " << buffer << '\n';
@@ -95,8 +136,10 @@ TEST_CASE("Header.Random"){
         [](auto c){ return std::isspace(c); }), kvp.at("*BUS_DELIMITER").end()
     );
     REQUIRE(data.bus_delimiter == kvp.at("*BUS_DELIMITER"));
-  }
-  //REQUIRE(data.standard == "");
-  //REQUIRE(data.standard == "\"IEEE 1481-1998\"");
-  
+
+    REQUIRE(data.time_unit        == kvp.at("*T_UNIT"));
+    REQUIRE(data.capacitance_unit == kvp.at("*C_UNIT"));
+    REQUIRE(data.resistance_unit  == kvp.at("*R_UNIT"));
+    REQUIRE(data.inductance_unit  == kvp.at("*L_UNIT"));
+  } 
 }
