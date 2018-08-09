@@ -11,6 +11,35 @@
 #include <cassert>
 
 
+// Utility ----------------------------------------------------------------------------------------
+char valid_char(){
+  // 33 - 126 are valid chars except 34(") and 39 (') 42(*)
+  int c = rand()%94+33;
+  while(c == 34 or c == 39 or c == 42){
+    c = rand()%94+33;
+  }
+  assert(not std::isspace(c) and c < 127 and c >= 33);
+  return c;
+}
+
+std::string rand_str(size_t sz){ 
+  if(sz == 0) return std::string();
+  std::string s(sz, ' ');
+  std::generate(s.begin(), s.end(), valid_char);
+  return s;
+}
+
+
+const std::vector<char> space = {' ', '\f', '\n', '\r', '\t', '\v'};
+std::string rand_space(size_t sz){
+  if(sz == 0){ return std::string(); }
+  std::string s(sz, ' ');
+  std::generate(s.begin(), s.end(), [&](){return space[rand()%space.size()];});
+  return s;
+}
+
+
+
 void parse(spef::Spef &data, std::string& buffer){
   data.clear();
   tao::pegtl::memory_input<> in(buffer, "");
@@ -48,7 +77,11 @@ void compare_header(spef::Spef& data, std::unordered_map<std::string, std::strin
   REQUIRE(data.capacitance_unit == gold.at("*C_UNIT"));
   REQUIRE(data.resistance_unit  == gold.at("*R_UNIT"));
   REQUIRE(data.inductance_unit  == gold.at("*L_UNIT"));
-}
+} 
+// End of Utility --------------------------------------------------------------------------------- 
+
+
+
 
 TEST_CASE("Header.Fix"){
   std::srand(123); 
@@ -86,7 +119,7 @@ TEST_CASE("Header.Fix"){
   std::string buffer;
   std::string header_buf;
   std::string unit_buf;
-  std::vector<char> space = {' ', '\f', '\n', '\r', '\t', '\v'};
+
   auto add_space = [&](std::string& buf){
     if(auto num = rand()%3; num == 0){
       buf.append(1, space[rand()%space.size()]);
@@ -137,15 +170,17 @@ TEST_CASE("Header.Fix"){
 TEST_CASE("Header.Random"){
   std::srand(123); 
 
-  std::vector<char> space = {' ', '\f', '\n', '\r', '\t', '\v'};
-  std::vector<std::string> headers = {
+  std::vector<std::string> 
+  headers = {
     "*SPEF", "*DESIGN", "*DATE", "*VENDOR", "*PROGRAM", "*VERSION",
     "*DESIGN_FLOW", "*DIVIDER", "*DELIMITER", "*BUS_DELIMITER"
   };
-  std::vector<std::string> units = {
+  std::vector<std::string> 
+  units = {
     "*T_UNIT", "*C_UNIT", "*R_UNIT", "*L_UNIT"
   };
-  std::unordered_map<std::string, std::string> kvp = {
+  std::unordered_map<std::string, std::string> 
+  kvp = {
     {"*SPEF", ""}, {"*DESIGN", ""}, {"*DATE", ""}, {"*VENDOR", ""},
     {"*PROGRAM", ""}, {"*VERSION", ""}, {"*DESIGN_FLOW", ""}, {"*DIVIDER", ""},
     {"*DELIMITER", ""}, {"*BUS_DELIMITER", ""}, {"*T_UNIT", ""}, {"*C_UNIT", ""}, 
@@ -154,28 +189,7 @@ TEST_CASE("Header.Random"){
 
   const int str_length {20};
 
-  auto valid_char = [](){
-    // 33 - 126 are valid chars except 34(") and 39 (') 42(*)
-    int c = rand()%94+33;
-    while(c == 34 or c == 39 or c == 42){
-      c = rand()%94+33;
-    }
-    assert(not std::isspace(c) and c < 127 and c >= 33);
-    return c;
-  };
 
-  auto rand_str = [&](size_t sz){ 
-    std::string s(sz, ' ');
-    std::generate(s.begin(), s.end(), valid_char);
-    return s;
-  };
-
-  auto rand_space = [&](size_t sz){
-    if(sz == 0){ return std::string(); }
-    std::string s(sz, ' ');
-    std::generate(s.begin(), s.end(), [&](){return space[rand()%space.size()];});
-    return s;
-  };
 
   auto rand_unit = [&](){
     return std::to_string((double)rand() / RAND_MAX) + rand_space(rand()%space.size()+1) + 
@@ -218,3 +232,42 @@ TEST_CASE("Header.Random"){
     compare_header(data, kvp);
   } 
 }
+
+
+TEST_CASE("NameMap"){
+
+  srand(123);
+  spef::Spef data;
+
+  std::string buffer("*NAME_MAP");
+
+  // Empty NAME MAP section
+  parse(data, buffer); 
+  REQUIRE(data.name_map.empty());
+
+  size_t len {30};
+  size_t pair_num {100};
+  std::unordered_map<std::string, std::string> name_map;
+
+
+  size_t run {10000};
+  for(size_t j=0; j<run; j++){
+    buffer = "*NAME_MAP";
+    name_map.clear();
+
+    buffer.append(rand_space(rand()%space.size()));
+
+    for(size_t i=0; i<pair_num; ++i){
+      name_map.insert({rand_str(rand()%len + 1).insert(0, 1, '*'), rand_str(rand()%len+1)});
+    }
+
+    for(const auto& [k, v]: name_map){
+      buffer.append(k).append(rand_space(rand()%space.size()+1))
+        .append(v).append(rand_space(rand()%space.size()));
+    }
+
+    parse(data, buffer);
+    REQUIRE(data.name_map == name_map);
+  }
+}
+

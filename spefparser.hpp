@@ -526,7 +526,8 @@ struct Action<RuleUnit>
 
 
 //  Name Map Section -------------------------------------------------------------------------------
-struct RuleNameMapBeg: pegtl::seq<TAO_PEGTL_STRING("*NAME_MAP"), RuleSpace>
+//struct RuleNameMapBeg: pegtl::seq<TAO_PEGTL_STRING("*NAME_MAP"), RuleSpace>
+struct RuleNameMapBeg: pegtl::seq<TAO_PEGTL_STRING("*NAME_MAP"), RuleDontCare>
 {};
 template <>
 struct Action<RuleNameMapBeg>  
