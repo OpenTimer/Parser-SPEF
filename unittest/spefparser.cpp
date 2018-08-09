@@ -10,6 +10,130 @@
 #include <algorithm>
 #include <cassert>
 
+
+void parse(spef::Spef &data, std::string& buffer){
+  data.clear();
+  tao::pegtl::memory_input<> in(buffer, "");
+  try{
+    tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, data);
+  }
+  catch(const tao::pegtl::parse_error& e){ 
+
+    std::cout << e.what() << std::endl;                                                                                                
+    const auto p = e.positions.front();
+    std::cout << "Fail at line " << p.line << ":\n";
+    std::cout << "  " << in.line_as_string(p) << '\n';
+    std::cout << "  " << std::string(p.byte_in_line, ' ') << "\033[31m^\033[0m" << '\n';
+    exit(1);
+  }
+}
+
+void compare_header(spef::Spef& data, std::unordered_map<std::string, std::string> gold){
+  REQUIRE(data.standard == gold.at("*SPEF"));
+  REQUIRE(data.design_name == gold.at("*DESIGN"));
+  REQUIRE(data.date == gold.at("*DATE"));
+  REQUIRE(data.vendor == gold.at("*VENDOR"));
+  REQUIRE(data.program == gold.at("*PROGRAM"));
+  REQUIRE(data.version == gold.at("*VERSION"));
+  REQUIRE(data.design_flow == gold.at("*DESIGN_FLOW"));
+  REQUIRE(data.divider == gold.at("*DIVIDER"));
+  REQUIRE(data.delimiter == gold.at("*DELIMITER"));
+  gold.at("*BUS_DELIMITER").erase(
+    remove_if(gold.at("*BUS_DELIMITER").begin(), gold.at("*BUS_DELIMITER").end(), 
+      [](auto c){ return std::isspace(c); }), gold.at("*BUS_DELIMITER").end()
+  );
+  REQUIRE(data.bus_delimiter == gold.at("*BUS_DELIMITER"));
+
+  REQUIRE(data.time_unit        == gold.at("*T_UNIT"));
+  REQUIRE(data.capacitance_unit == gold.at("*C_UNIT"));
+  REQUIRE(data.resistance_unit  == gold.at("*R_UNIT"));
+  REQUIRE(data.inductance_unit  == gold.at("*L_UNIT"));
+}
+
+TEST_CASE("Header.Fix"){
+  std::srand(123); 
+
+  std::unordered_map<std::string, std::string> 
+  headers = {
+    {"*SPEF",          "\"1481-2009 IEEE Standar\""},
+    {"*DESIGN",        "\"Design1\""},
+    {"*DATE",          "\"Mon Aug 9 03:10 2018\""},
+    {"*VENDOR",        "\"An EDA company\""},
+    {"*PROGRAM",       "\"SIMPLE\""},
+    {"*VERSION",       "\"1.2.3\""},
+    {"*DIVIDER",       "/"},
+    {"*DELIMITER",     ":"},
+    {"*BUS_DELIMITER", "[  ]"}
+  };
+  
+  std::unordered_map<std::string, std::string> 
+  units = {
+    {"*T_UNIT",    "1 S"},
+    {"*R_UNIT",    "1 MOHM"},
+    {"*L_UNIT",    "1 FHENRY"},
+    {"*C_UNIT",    "1 UC"}
+  };
+
+  std::unordered_map<std::string, std::string> 
+  kvp = {
+    {"*SPEF", ""}, {"*DESIGN", ""}, {"*DATE", ""}, {"*VENDOR", ""},
+    {"*PROGRAM", ""}, {"*VERSION", ""}, {"*DESIGN_FLOW", ""}, {"*DIVIDER", ""},
+    {"*DELIMITER", ""}, {"*BUS_DELIMITER", ""}, {"*T_UNIT", ""}, {"*C_UNIT", ""}, 
+    {"*R_UNIT", ""}, {"*L_UNIT", ""}
+  };
+
+  spef::Spef data;
+  std::string buffer;
+  std::string header_buf;
+  std::string unit_buf;
+  std::vector<char> space = {' ', '\f', '\n', '\r', '\t', '\v'};
+  auto add_space = [&](std::string& buf){
+    if(auto num = rand()%3; num == 0){
+      buf.append(1, space[rand()%space.size()]);
+    }
+    else if(num == 1){
+      buf.insert(0, 1, space[rand()%space.size()]);
+    }
+  };
+  auto add_data = [&](std::string& buf, 
+    const std::unordered_map<std::string, std::string>& values){
+      for(const auto& [k, v]: values){
+        // Empty or Fix value 
+        if(k.find("UNIT") != std::string::npos or 
+           k.find("DELIMITER") != std::string::npos or
+           k.find("DIVIDER") != std::string::npos){
+          kvp.at(k) = values.at(k);
+        }
+        else{
+          kvp.at(k) = rand()%2 == 0 ? "" : values.at(k);
+        }
+        if(rand()%2 == 0){ 
+          // Add to back
+          buf.append(k).append(1, space[rand()%space.size()]).append(kvp.at(k));
+        }
+        else{
+          // Add to front
+          buf.insert(0, kvp.at(k)).insert(0, 1, space[rand()%space.size()]).insert(0, k);
+        }
+        add_space(buf);
+      }
+  };
+
+  size_t run {10000};
+  for(size_t i=0; i<run; ++i){
+    buffer.clear();
+    header_buf.clear();
+    unit_buf.clear();
+
+    add_data(header_buf, headers);
+    add_data(unit_buf, units);
+    buffer.append(header_buf).append(unit_buf);
+
+    parse(data, buffer);
+    compare_header(data, kvp); 
+  }
+}
+
 TEST_CASE("Header.Random"){
   std::srand(123); 
 
@@ -21,7 +145,7 @@ TEST_CASE("Header.Random"){
   std::vector<std::string> units = {
     "*T_UNIT", "*C_UNIT", "*R_UNIT", "*L_UNIT"
   };
-  std::unordered_map<std::string_view, std::string> kvp = {
+  std::unordered_map<std::string, std::string> kvp = {
     {"*SPEF", ""}, {"*DESIGN", ""}, {"*DATE", ""}, {"*VENDOR", ""},
     {"*PROGRAM", ""}, {"*VERSION", ""}, {"*DESIGN_FLOW", ""}, {"*DIVIDER", ""},
     {"*DELIMITER", ""}, {"*BUS_DELIMITER", ""}, {"*T_UNIT", ""}, {"*C_UNIT", ""}, 
@@ -61,37 +185,6 @@ TEST_CASE("Header.Random"){
 
   spef::Spef data;
   std::string buffer;
-  auto parse = [&data, &buffer](){ 
-    data.clear();
-    tao::pegtl::memory_input<> in(buffer, "");
-    try{
-      tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, data);
-    }
-    catch(const tao::pegtl::parse_error& e){ 
-
-      std::cout << e.what() << std::endl;                                                                                                
-      const auto p = e.positions.front();
-      std::cout << "Fail at line " << p.line << ":\n";
-      std::cout << "  " << in.line_as_string(p) << '\n';
-      std::cout << "  " << std::string(p.byte_in_line, ' ') << "\033[31m^\033[0m" << '\n';
-
-      //{
-      //  std::ofstream ofs("FAIL");
-      //  ofs << buffer;
-      //  ofs.close();
-      //}
-      //{
-      //  std::ofstream ofs("FAIL_INT");
-      //  for(size_t i=0; i<buffer.size(); i++){
-      //    ofs << (int)(buffer[i]) << "=" << buffer[i] << '\n';
-      //  }
-      //  ofs.close();
-      //}
-      exit(1);
-    }
-
-  };
-
 
   for(int i=0; i<10000; i++){
     std::random_shuffle(headers.begin(), headers.end());
@@ -120,26 +213,8 @@ TEST_CASE("Header.Random"){
     }
 
     //std::cout << i << "  buffer = " << buffer << '\n';
-    parse();
+    parse(data, buffer);
 
-    REQUIRE(data.standard == kvp.at("*SPEF"));
-    REQUIRE(data.design_name == kvp.at("*DESIGN"));
-    REQUIRE(data.date == kvp.at("*DATE"));
-    REQUIRE(data.vendor == kvp.at("*VENDOR"));
-    REQUIRE(data.program == kvp.at("*PROGRAM"));
-    REQUIRE(data.version == kvp.at("*VERSION"));
-    REQUIRE(data.design_flow == kvp.at("*DESIGN_FLOW"));
-    REQUIRE(data.divider == kvp.at("*DIVIDER"));
-    REQUIRE(data.delimiter == kvp.at("*DELIMITER"));
-    kvp.at("*BUS_DELIMITER").erase(
-      remove_if(kvp.at("*BUS_DELIMITER").begin(), kvp.at("*BUS_DELIMITER").end(), 
-        [](auto c){ return std::isspace(c); }), kvp.at("*BUS_DELIMITER").end()
-    );
-    REQUIRE(data.bus_delimiter == kvp.at("*BUS_DELIMITER"));
-
-    REQUIRE(data.time_unit        == kvp.at("*T_UNIT"));
-    REQUIRE(data.capacitance_unit == kvp.at("*C_UNIT"));
-    REQUIRE(data.resistance_unit  == kvp.at("*R_UNIT"));
-    REQUIRE(data.inductance_unit  == kvp.at("*L_UNIT"));
+    compare_header(data, kvp);
   } 
 }
