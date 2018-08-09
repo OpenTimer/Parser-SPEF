@@ -283,6 +283,7 @@ struct Spef {
   std::vector<Net> nets;
 
   std::string dump() const;
+  void clear();
 
   template <typename T>
   friend struct Action;
@@ -295,9 +296,31 @@ struct Spef {
     std::vector<std::string_view> _tokens;
 };
 
+inline void Spef::clear(){
+  standard.clear();
+  design_name.clear();
+  date.clear();
+  vendor.clear();
+  program.clear();
+  version.clear();
+  design_flow.clear();
+  divider.clear();
+  delimiter.clear();
+  bus_delimiter.clear();
+  time_unit.clear();
+  capacitance_unit.clear();
+  resistance_unit.clear();
+  inductance_unit.clear();
+
+  name_map.clear();
+  ports.clear();
+  nets.clear();
+}
+
 
 #define NRM  "\x1B[0m"
 #define GRN  "\x1B[32m"
+
 inline std::string Spef::dump() const {
   std::ostringstream os;
   os 
