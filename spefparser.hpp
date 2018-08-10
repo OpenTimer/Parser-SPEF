@@ -556,7 +556,7 @@ struct Action<RuleNameMap>
 
 //  Port Section ----------------------------------------------------------------------------------
 
-struct RulePortBeg: pegtl::seq<TAO_PEGTL_STRING("*PORTS"), RuleSpace>
+struct RulePortBeg: pegtl::seq<TAO_PEGTL_STRING("*PORTS"), RuleDontCare>
 {};
 template <>
 struct Action<RulePortBeg>  
