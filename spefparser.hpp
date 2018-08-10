@@ -22,6 +22,7 @@
 #include <optional>
 #include <experimental/filesystem>
 #include <fstream>
+#include <cmath>
 
 namespace spef{
 
@@ -54,8 +55,6 @@ namespace double_
 
   struct rule : seq< plus_minus, sor< hexadecimal, decimal, inf, nan > > {}; 
 };
-
-
 
 
 
@@ -167,10 +166,54 @@ struct Connection {
   std::string driving_cell;
 
   Connection() = default;
-  Connection(Connection&&) = default;
-
-  Connection& operator = (Connection&&) = default;
+  bool operator ==(const Connection& rhs) const;
+  bool operator !=(const Connection& rhs) const;
 };
+
+inline bool Connection::operator != (const Connection& rhs) const {
+  return not (*this == rhs);
+}
+
+inline bool Connection::operator == (const Connection& rhs) const {
+  auto is_same_float = [](float a, float b){ 
+    if(::fabs(a-b) > 1e-3){
+      return false;
+    }
+    return true;
+  };
+
+  if(name != rhs.name or type != rhs.type or direction != rhs.direction or 
+    driving_cell != rhs.driving_cell){
+    return false;
+  }
+
+  if(load.has_value() and rhs.load.has_value()){
+    if(not is_same_float(*load, *rhs.load)){
+      return false;
+    }
+  }
+  else{
+    if(load != rhs.load){
+      return false;
+    }
+  }
+ 
+  if(coordinate.has_value() and rhs.coordinate.has_value()){
+    auto& x = std::get<0>(*coordinate);
+    auto& y = std::get<1>(*coordinate);
+    auto& rx = std::get<0>(*rhs.coordinate);
+    auto& ry = std::get<1>(*rhs.coordinate);
+    if(not is_same_float(x, rx) or not is_same_float(y, ry)){
+      return false;
+    }
+  }
+  else{
+    if(coordinate != rhs.coordinate){
+      return false;
+    }
+  }  
+  return true;
+}
 
 std::ostream& operator<<(std::ostream& os, const Connection& c)
 {
@@ -197,7 +240,54 @@ struct Net {
   std::vector<std::tuple<std::string, std::string, float>> ress;
 
   Net() = default;
+  Net(const std::string& s, const float f): name{s}, lcap{f} {}
+
+  bool operator ==(const Net& rhs) const;
+  bool operator !=(const Net& rhs) const;
 };
+
+inline bool Net::operator !=(const Net& rhs) const{
+  return not (*this == rhs);
+}
+
+inline bool Net::operator == (const Net& rhs) const {
+  if(name != rhs.name or ::fabs(lcap - rhs.lcap) > 1e-3)
+    return false;
+  if(connections != rhs.connections)
+    return false;
+  if(caps.size() != rhs.caps.size() or ress.size() != rhs.ress.size()){
+    return false;
+  }
+
+  auto is_same_tuple = 
+  [](const std::tuple<std::string, std::string, float>& l, 
+     const std::tuple<std::string, std::string, float>& r){
+    const auto& [l1, l2, l3] = l;
+    const auto& [r1, r2, r3] = r;
+    if(l1 != r1 or l2 != r2){
+      return false;
+    }
+    if(::fabs(l3-r3) > 1e-3){
+      return false;
+    }
+    return true;
+  };
+
+  for(size_t i=0; i<caps.size(); i++){
+    if(not is_same_tuple(caps[i], rhs.caps[i])){
+      return false;
+    }
+  }
+
+  for(size_t i=0; i<ress.size(); i++){
+    if(not is_same_tuple(ress[i], rhs.ress[i])){
+      return false;
+    }
+  }
+
+  return true;
+}
+
 
 std::ostream& operator<<(std::ostream& os, const Net& n)
 {
@@ -256,6 +346,12 @@ struct Spef {
   friend struct Action;
 
   friend void split_on_space(const char*, const char*, std::vector<std::string_view>&);
+
+  //void read(std::filesystem::path);
+
+  // TODO: what is the terminology?
+  
+  //void resolve_name_mapping(Net& net);
 
   private:
   
@@ -339,6 +435,10 @@ using RuleToken = pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'
 //pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>>>>;
 using RuleDontCare = pegtl::star<pegtl::space>;
 using RuleSpace = pegtl::plus<pegtl::space>;
+
+struct RuleDouble : pegtl::seq<double_::rule, pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>>>>
+{};
+
 
 template<typename T>
 struct Action: pegtl::nothing<T>
@@ -565,7 +665,7 @@ struct Action<RulePortBeg>
   static void apply(const Input& in, Spef& d){}
 };
 
-// TODO: All sections are optional
+// TODO: Ignore C/L/S for now
 struct RulePort: pegtl::seq<
   pegtl::not_at<TAO_PEGTL_STRING("*D_NET")>, TAO_PEGTL_STRING("*"),
   pegtl::must<
@@ -650,8 +750,8 @@ struct RuleConn: pegtl::seq<
 
     pegtl::seq<RuleSpace, pegtl::seq<TAO_PEGTL_STRING("*L"), RuleSpace, double_::rule>>,
 
-    pegtl::seq<RuleSpace, pegtl::seq<TAO_PEGTL_STRING("*D"), RuleSpace, 
-      pegtl::plus<pegtl::identifier_other>>>
+    pegtl::seq<RuleSpace, pegtl::seq<TAO_PEGTL_STRING("*D"), RuleSpace, RuleToken> >
+      //pegtl::plus<pegtl::identifier_other>>>
     >
   >
 >
@@ -712,7 +812,8 @@ struct Action<RuleCapBeg>
 
 
 struct RuleCapGround: pegtl::seq<
-  pegtl::plus<pegtl::digit>, RuleSpace, RuleToken, RuleSpace, double_::rule
+  pegtl::plus<pegtl::digit>, RuleSpace, RuleToken, RuleSpace, RuleDouble
+  //double_::rule
 >
 {};
 template <>
@@ -721,6 +822,7 @@ struct Action<RuleCapGround>
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     split_on_space(in.begin(), in.end(), d._tokens);
+    //std::cout << "2 = " << in.string() << '\n';
     // TODO: verify...?
     d._current_net->caps.emplace_back(
       std::forward_as_tuple(d._tokens[1], "", std::strtof(d._tokens[2].data(), nullptr))
@@ -728,9 +830,9 @@ struct Action<RuleCapGround>
   }
 };
 
-
 struct RuleCapCouple: pegtl::seq<
-  pegtl::plus<pegtl::digit>, RuleSpace, RuleToken, RuleSpace, RuleToken, RuleSpace, double_::rule
+  pegtl::plus<pegtl::digit>, RuleSpace, RuleToken, RuleSpace, RuleToken, RuleSpace, RuleDouble
+  //double_::rule
 >
 {};
 template <>
@@ -738,12 +840,14 @@ struct Action<RuleCapCouple>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
+    //std::cout << "3 = " << in.string() << '\n';
     split_on_space(in.begin(), in.end(), d._tokens);
     d._current_net->caps.emplace_back(
       std::forward_as_tuple(d._tokens[1], d._tokens[2], std::strtof(d._tokens[3].data(), nullptr))
     );
   }
 };
+
 
 
 
@@ -847,8 +951,8 @@ struct RuleSpef: pegtl::must<pegtl::star<pegtl::space>,
       RuleNetBeg, RuleDontCare,
       pegtl::opt<pegtl::seq<RuleConnBeg, RuleDontCare>, pegtl::star<pegtl::seq<RuleConn, RuleDontCare>>>,
       pegtl::opt<pegtl::seq<RuleCapBeg,  RuleDontCare>, 
-        pegtl::star<pegtl::seq<pegtl::sor<RuleCapGround, RuleCapCouple>, RuleDontCare>>>,
-      pegtl::opt<pegtl::seq<RuleResBeg,  RuleDontCare>, pegtl::star<pegtl::seq<RuleRes, RuleDontCare>>>, 
+        pegtl::star<pegtl::seq<pegtl::sor<RuleCapGround, RuleCapCouple>, RuleSpace>>>,
+      pegtl::opt<pegtl::seq<RuleResBeg,  RuleDontCare>, pegtl::star<pegtl::seq<RuleRes, RuleSpace>>>, 
       RuleNetEnd, RuleDontCare
     >
   >,
