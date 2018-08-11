@@ -352,12 +352,13 @@ struct Spef {
 
   // TODO: what is the terminology?
   
-  //void resolve_name_mapping(Net& net);
+  void name_expansion(Net&);
 
   private:
   
     Net* _current_net {nullptr};
     std::vector<std::string_view> _tokens;
+    std::unordered_map<size_t, std::string_view> _name_map;
 };
 
 inline void Spef::clear(){
@@ -649,8 +650,8 @@ struct Action<RuleNameMap>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
+    // Skip the '*' 
     split_on_space(in.begin(), in.end(), d._tokens); 
-    //d.name_map.insert({vec[0], vec[1]});
     d.name_map.try_emplace( std::string{d._tokens[0]}, std::string{d._tokens[1]} );
   }
 };
@@ -1033,6 +1034,72 @@ inline bool Spef::parse_spef_file(const std::experimental::filesystem::path &p){
   }
 }
 
+inline void string_expansion(std::string& str, 
+  const std::unordered_map<size_t, std::string_view>& mapping){
+  if(str.empty()) return ;
+  size_t beg {str.size()};
+  size_t end {0};
+  size_t last;
+  size_t key;
+  char* endptr {nullptr};
+  while(beg > 0){
+    last = beg;
+    -- beg;
+    if(beg = str.find_last_of('*', beg); beg != std::string::npos){
+      end = beg+1;
+      while(end < last and std::isdigit(str[end])){
+        ++ end;
+      }
+      endptr = (&str.data()[end]);
+      key = ::strtoul(&str.data()[beg+1], &(endptr), 10);
+      if(mapping.find(key) != mapping.end()){
+        str.replace(beg, end-beg, mapping.at(key));
+      }
+    }
+    else{
+      break;
+    }
+  }
+
+}
+
+
+inline void Spef::name_expansion(Net& net){
+  if(_name_map.empty()){
+    size_t key;
+    for(auto& [k, v]: name_map){
+      //std::stoi(k, &key);
+      key = ::strtoul(&k.data()[1], nullptr, 10);
+      _name_map.emplace(key, v);
+    }
+  }
+
+  string_expansion(net.name, _name_map);
+  for(auto &c : net.connections){
+    string_expansion(c.name, _name_map);
+    if(not c.driving_cell.empty()){
+      string_expansion(c.driving_cell, _name_map);
+    }
+  }
+
+  for(auto &t: net.caps){
+    if(not std::get<0>(t).empty()){
+      string_expansion(std::get<0>(t), _name_map);
+    }
+    if(not std::get<1>(t).empty()){
+      string_expansion(std::get<1>(t), _name_map);
+    }
+  }
+
+  for(auto &r: net.ress){
+    if(not std::get<0>(r).empty()){
+      string_expansion(std::get<0>(r), _name_map);
+    }
+    if(not std::get<1>(r).empty()){
+      string_expansion(std::get<1>(r), _name_map);
+    }
+  }
+}
 
 
 };    // end of namespace spef. --------------------------------------------------------------------

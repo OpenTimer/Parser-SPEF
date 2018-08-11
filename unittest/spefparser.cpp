@@ -519,3 +519,57 @@ TEST_CASE("Net"){
   REQUIRE(data.nets == nets);
 }
 
+
+
+TEST_CASE("NAME_EXPANSION"){
+  srand(123);
+
+  std::unordered_map<size_t, std::string_view> mapping = {
+    {1,    "a"},
+    {23,   "bc"},
+    {456,  "def"},
+    {7890, "ghij"}
+  };
+
+  auto rand_alnum = [](){
+    const char alnum[] =
+           "0123456789"
+           "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+           "abcdefghijklmnopqrstuvwxyz";
+    std::string s(1, alnum[rand()%52+10]);
+    for(size_t i=0; i<4; i++){
+      s.append(1, alnum[rand()%62]);
+    }
+    return s;
+  };
+
+  const size_t run {100000};
+  for(size_t i=0; i<run; ++i){
+    std::string key;
+    std::string value;
+    for(const auto& [k, v]: mapping){
+      auto mid = rand_alnum();
+      if(rand()%2){
+        key.append(1, '*').append(std::to_string(k));
+        value.append(v);
+        if(rand()%2){
+          key.append(mid);
+          value.append(mid);
+        }
+      }
+      else{
+        key.insert(0, std::to_string(k));
+        key.insert(0, 1, '*');
+        value.insert(0, v);
+        if(rand()%2){
+          key.insert(0, mid);
+          value.insert(0, mid);
+        }
+      }
+    }
+    spef::string_expansion(key, mapping);
+    REQUIRE(key == value);
+  }
+}
+
+
