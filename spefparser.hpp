@@ -347,6 +347,7 @@ struct Spef {
 
   friend void split_on_space(const char*, const char*, std::vector<std::string_view>&);
 
+  bool parse_spef_file(const std::experimental::filesystem::path &);
   //void read(std::filesystem::path);
 
   // TODO: what is the terminology?
@@ -985,7 +986,7 @@ template<typename T> const std::string Control<T>::error_message = "Fail to matc
 
 // API for parsing --------------------------------------------------------------------------------
 
-inline bool parse_spef_file(const std::experimental::filesystem::path &p, Spef& sf){
+inline bool Spef::parse_spef_file(const std::experimental::filesystem::path &p){
   if(not std::experimental::filesystem::exists(p)){
     std::cout << "The provided path does not exist!\n";
     return false;
@@ -1018,7 +1019,7 @@ inline bool parse_spef_file(const std::experimental::filesystem::path &p, Spef& 
   //tao::pegtl::memory_input<> in(buffer, "");
 
   try{
-    tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, sf);
+    tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, *this);
     return true;
   }
   catch(const tao::pegtl::parse_error& e){
