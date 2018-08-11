@@ -977,8 +977,8 @@ struct Control : tao::pegtl::normal<Rule>
    }
 };
 
-template<typename T> const std::string Control<T>::error_message = "Fail to match the Spef rule: \033[31m" + 
-  tao::pegtl::internal::demangle< T>() + "\033[0m";
+template<typename T> const std::string Control<T>::error_message = "Fail to match the Spef rule: " + 
+  tao::pegtl::internal::demangle< T>() ;
 
 
 
@@ -1016,6 +1016,7 @@ inline bool parse_spef_file(const std::experimental::filesystem::path &p, Spef& 
   // Use Lazy mode here to improve performane
   tao::pegtl::memory_input<pegtl::tracking_mode::LAZY> in(buffer, "");
   //tao::pegtl::memory_input<> in(buffer, "");
+
   try{
     tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, sf);
     return true;
@@ -1026,7 +1027,7 @@ inline bool parse_spef_file(const std::experimental::filesystem::path &p, Spef& 
     const auto p = e.positions.front();
     std::cout << "Fail at line " << p.line << ":\n";
     std::cout << "  " << in.line_as_string(p) << '\n';
-    std::cout << "  " << std::string(p.byte_in_line, ' ') << "\033[31m^\033[0m" << '\n';
+    std::cout << "  " << std::string(p.byte_in_line, ' ') << "^" << '\n';
     return false;
   }
 }
