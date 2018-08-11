@@ -430,6 +430,9 @@ inline std::string Spef::dump() const {
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 
+
+
+
 using RuleToken = pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>, pegtl::eof>>>;
 //using RuleToken = pegtl::sor<pegtl::until<pegtl::at<pegtl::space>>, pegtl::until<pegtl::at<pegtl::one<'*'>>>>;
 //pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>>>>;
