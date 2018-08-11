@@ -447,7 +447,6 @@ template<typename T>
 struct Action: pegtl::nothing<T>
 {};
 
-
 struct Quote: pegtl::string<'"'>
 {};
 struct QuotedString: pegtl::if_must<Quote, pegtl::until<Quote>>
@@ -1014,7 +1013,9 @@ inline bool parse_spef_file(const std::experimental::filesystem::path &p, Spef& 
 
 
 
-  tao::pegtl::memory_input<> in(buffer, "");
+  // Use Lazy mode here to improve performane
+  tao::pegtl::memory_input<pegtl::tracking_mode::LAZY> in(buffer, "");
+  //tao::pegtl::memory_input<> in(buffer, "");
   try{
     tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, sf);
     return true;
