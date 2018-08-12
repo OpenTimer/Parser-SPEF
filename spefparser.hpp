@@ -6,7 +6,6 @@
 
 #include <pegtl/include/tao/pegtl.hpp>
 #include <iostream>
-#include <charconv>
 #include <cstring>
 #include <algorithm>
 #include <utility>
@@ -15,9 +14,6 @@
 #include <unordered_map>
 #include <tuple>
 #include <array>
-#include <map>
-#include <cctype>
-#include <regex>
 #include <string_view>
 #include <optional>
 #include <experimental/filesystem>
@@ -118,9 +114,9 @@ enum class ConnectionDirection {
 std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
 {
 	switch(c){
-    case ConnectionDirection::INPUT  : os << "I";  break;
-    case ConnectionDirection::OUTPUT : os << "O"; break;
-    case ConnectionDirection::INOUT  : os << "B";  break;
+    case ConnectionDirection::INPUT  : os << 'I';  break;
+    case ConnectionDirection::OUTPUT : os << 'O'; break;
+    case ConnectionDirection::INOUT  : os << 'B';  break;
 		default    : os.setstate(std::ios_base::failbit);
 	}
 	return os;
@@ -389,20 +385,20 @@ inline void Spef::clear(){
 inline std::string Spef::dump() const {
   std::ostringstream os;
   os 
-    << "*SPEF "          <<  standard         << "\n" 
-    << "*DESIGN "        <<  design_name      << "\n" 
-    << "*DATE "          <<  date             << "\n" 
-    << "*VENDOR "        <<  vendor           << "\n"
-    << "*PROGRAM "       <<  program          << "\n"
-    << "*VERSION "       <<  version          << "\n"
-    << "*DESIGN_FLOW "   <<  design_flow      << "\n"
-    << "*DIVIDER "       <<  divider          << "\n"
-    << "*DELIMITER "     <<  delimiter        << "\n"
-    << "*BUS_DELIMITER " <<  bus_delimiter    << "\n"
-    << "*T_UNIT "        <<  time_unit        << "\n"
-    << "*C_UNIT "        <<  capacitance_unit << "\n"
-    << "*R_UNIT "        <<  resistance_unit  << "\n"
-    << "*L_UNIT "        <<  inductance_unit  << "\n"
+    << "*SPEF "          <<  standard         << '\n' 
+    << "*DESIGN "        <<  design_name      << '\n' 
+    << "*DATE "          <<  date             << '\n' 
+    << "*VENDOR "        <<  vendor           << '\n'
+    << "*PROGRAM "       <<  program          << '\n'
+    << "*VERSION "       <<  version          << '\n'
+    << "*DESIGN_FLOW "   <<  design_flow      << '\n'
+    << "*DIVIDER "       <<  divider          << '\n'
+    << "*DELIMITER "     <<  delimiter        << '\n'
+    << "*BUS_DELIMITER " <<  bus_delimiter    << '\n'
+    << "*T_UNIT "        <<  time_unit        << '\n'
+    << "*C_UNIT "        <<  capacitance_unit << '\n'
+    << "*R_UNIT "        <<  resistance_unit  << '\n'
+    << "*L_UNIT "        <<  inductance_unit  << '\n'
   ;
   os << '\n';
 
@@ -1104,18 +1100,12 @@ inline void Spef::name_expansion(Net& net){
   string_expansion(net.name, _name_map);
   for(auto &c : net.connections){
     string_expansion(c.name, _name_map);
-    if(not c.driving_cell.empty()){
-      string_expansion(c.driving_cell, _name_map);
-    }
+    string_expansion(c.driving_cell, _name_map);
   }
 
   for(auto &t: net.caps){
-    if(not std::get<0>(t).empty()){
-      string_expansion(std::get<0>(t), _name_map);
-    }
-    if(not std::get<1>(t).empty()){
-      string_expansion(std::get<1>(t), _name_map);
-    }
+    string_expansion(std::get<0>(t), _name_map);
+    string_expansion(std::get<1>(t), _name_map);
   }
 
   for(auto &r: net.ress){

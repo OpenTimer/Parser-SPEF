@@ -56,7 +56,7 @@ add_test(NameMap ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=NameMap)
 add_test(Port ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Port)
 add_test(Net ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Net)
 add_test(NameExpansion ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=NAME_EXPANSION)
-
+add_test(All ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=All)
 
 
 
