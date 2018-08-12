@@ -349,7 +349,6 @@ struct Spef {
   friend void split_on_space(const char*, const char*, std::vector<std::string_view>&);
 
   bool read(const std::experimental::filesystem::path &);
-  //void read(std::filesystem::path);
 
   // TODO: what is the terminology?
   void name_expansion();              // Expand everything
@@ -386,8 +385,6 @@ inline void Spef::clear(){
 }
 
 
-#define NRM  "\x1B[0m"
-#define GRN  "\x1B[32m"
 
 inline std::string Spef::dump() const {
   std::ostringstream os;
@@ -497,7 +494,7 @@ struct Action<BusDelimiter>
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     d.bus_delimiter = in.string();
-    // Remove space between middle 
+    // Remove space in middle 
     d.bus_delimiter.erase(std::remove_if(d.bus_delimiter.begin(), d.bus_delimiter.end(), 
       [](auto c){return std::isspace(c);}), d.bus_delimiter.end());
   };
@@ -654,7 +651,7 @@ struct Action<RuleNameMap>
   static void apply(const Input& in, Spef& d){
     // Skip the '*' 
     split_on_space(in.begin(), in.end(), d._tokens); 
-    d.name_map.try_emplace( std::string{d._tokens[0]}, std::string{d._tokens[1]} );
+    d.name_map.try_emplace(std::string{d._tokens[0]}, std::string{d._tokens[1]});
   }
 };
 
@@ -759,7 +756,7 @@ struct RuleConn: pegtl::seq<
 
     pegtl::seq<RuleSpace, pegtl::seq<TAO_PEGTL_STRING("*L"), RuleSpace, double_::rule>>,
 
-    pegtl::seq<RuleSpace, pegtl::seq<TAO_PEGTL_STRING("*D"), RuleSpace, RuleToken> >
+    pegtl::seq<RuleSpace, pegtl::seq<TAO_PEGTL_STRING("*D"), RuleSpace, RuleToken>>
       //pegtl::plus<pegtl::identifier_other>>>
     >
   >
@@ -831,7 +828,6 @@ struct Action<RuleCapGround>
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     split_on_space(in.begin(), in.end(), d._tokens);
-    //std::cout << "2 = " << in.string() << '\n';
     // TODO: verify...?
     d._current_net->caps.emplace_back(
       std::forward_as_tuple(d._tokens[1], "", std::strtof(d._tokens[2].data(), nullptr))
@@ -849,7 +845,6 @@ struct Action<RuleCapCouple>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
-    //std::cout << "3 = " << in.string() << '\n';
     split_on_space(in.begin(), in.end(), d._tokens);
     d._current_net->caps.emplace_back(
       std::forward_as_tuple(d._tokens[1], d._tokens[2], std::strtof(d._tokens[3].data(), nullptr))
@@ -992,12 +987,11 @@ template<typename T> const std::string Control<T>::error_message = "Fail to matc
 
 // API for parsing --------------------------------------------------------------------------------
 
-inline bool Spef::read(const std::experimental::filesystem::path &p){
+std::string file_to_memory(const std::experimental::filesystem::path &p){
   if(not std::experimental::filesystem::exists(p)){
     std::cout << "The provided path does not exist!\n";
-    return false;
+    return "";
   }
-
   std::ifstream ifs(p);
 
   ifs.seekg(0, std::ios::end);
@@ -1005,7 +999,17 @@ inline bool Spef::read(const std::experimental::filesystem::path &p){
   ifs.seekg(0);
   ifs.read(&buffer[0], buffer.size()); 
   ifs.close();
+  return std::move(buffer);
+}
 
+inline bool Spef::read(const std::experimental::filesystem::path &p){
+  auto buffer {file_to_memory(p)};
+  if(buffer.empty()){
+    std::cout << "Error in reading file into memory, buffer is empty!\n";
+    return false;
+  }
+
+  // Remove comments 
   for(size_t i=0; i<buffer.size(); i++){
     if(buffer[i] == '/' && i+1 < buffer.size() && buffer[i+1] == '/') {
       buffer[i] = buffer[i+1] = ' ';
@@ -1018,11 +1022,8 @@ inline bool Spef::read(const std::experimental::filesystem::path &p){
     }
   }
 
-
-
-  // Use Lazy mode here to improve performane
+  // Use Lazy mode to improve performane
   tao::pegtl::memory_input<pegtl::tracking_mode::LAZY> in(buffer, "");
-  //tao::pegtl::memory_input<> in(buffer, "");
 
   try{
     tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, *this);
@@ -1118,12 +1119,8 @@ inline void Spef::name_expansion(Net& net){
   }
 
   for(auto &r: net.ress){
-    if(not std::get<0>(r).empty()){
-      string_expansion(std::get<0>(r), _name_map);
-    }
-    if(not std::get<1>(r).empty()){
-      string_expansion(std::get<1>(r), _name_map);
-    }
+    string_expansion(std::get<0>(r), _name_map);
+    string_expansion(std::get<1>(r), _name_map);
   }
 }
 
