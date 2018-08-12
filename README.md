@@ -23,3 +23,12 @@ We recommend using out-of-source build.
 
 After successful build, you can find the binaries for both examples and unit tests in the 
 folder `example` and `unittest`, respectively.
+
+## Run Tests
+Parser-SPEF uses [Doctest](https://github.com/onqtam/doctest) for unit tests. After successful build, 
+to run the unit tests:
+```bash
+~$ make test
+```
+
+
