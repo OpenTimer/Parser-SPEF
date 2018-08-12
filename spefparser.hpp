@@ -113,12 +113,12 @@ enum class ConnectionDirection {
 
 std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
 {
-	switch(c){
+  switch(c){
     case ConnectionDirection::INPUT  : os << 'I';  break;
     case ConnectionDirection::OUTPUT : os << 'O'; break;
     case ConnectionDirection::INOUT  : os << 'B';  break;
-		default    : os.setstate(std::ios_base::failbit);
-	}
+    default    : os.setstate(std::ios_base::failbit);
+  }
 	return os;
 }
 
