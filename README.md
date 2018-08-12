@@ -1,5 +1,6 @@
 # Parser-SPEF
-A Modern C++17 SPEF parser 
+A Modern C++17 SPEF parser based on the [Parsing Expression Grammar](https://en.wikipedia.org/wiki/Parsing_expression_grammar). 
+
 
 # Get Started with Parser-SPEF
 The following example shows how to use Parser-SPEF to read a SPEF file:
