@@ -35,8 +35,10 @@ message(STATUS "EXAMPLE_CXX_FLAGS: " ${EXAMPLE_CXX_FLAGS})
 message(STATUS "EXAMPLE_EXE_LINKER_FLAGS: " ${EXAMPLE_EXE_LINKER_FLAGS})
 
 add_executable(simple example/simple.cpp)
-target_link_libraries(simple stdc++fs)
 
+#target_compile_options(simple PRIVATE "-pg")
+#target_link_libraries(simple stdc++fs "-pg")
+target_link_libraries(simple stdc++fs)
 
 # -----------------------------------------------------------------------------
 # Unittest
@@ -48,5 +50,15 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/unittest)
 add_executable(spefparser unittest/spefparser.cpp)
 target_link_libraries(spefparser stdc++fs)
 
-add_test(header ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Header)
+add_test(HeaderFix ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Header.Fix)
+add_test(HeaderRandom ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Header.Random)
+add_test(NameMap ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=NameMap)
+add_test(Port ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Port)
+add_test(Net ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Net)
+add_test(NameExpansion ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=NAME_EXPANSION)
+
+
+
+
+
 
