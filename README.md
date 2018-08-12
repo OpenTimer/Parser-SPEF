@@ -35,4 +35,7 @@ to run the unit tests:
 ```
 
 # Integrate Parser-SPEF to your Project 
-
+To use Parser-SPEF in your project, just include the header:
+```cpp
+#include <Parser-SPEF/spefparser.hpp>
+```
