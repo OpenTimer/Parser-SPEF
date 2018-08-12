@@ -301,18 +301,19 @@ std::ostream& operator<<(std::ostream& os, const Net& n)
   if(not n.caps.empty()){
     os << "*CAP\n";
   }
-  for(const auto& c: n.caps){
-    os << std::get<0>(c);
-    if(not std::get<1>(c).empty()){
-      os << ' ' << std::get<1>(c);
+  for(size_t i=0; i<n.caps.size(); ++i){
+    os << i+1 << ' ' << std::get<0>(n.caps[i]);
+    if(not std::get<1>(n.caps[i]).empty()){
+      os << ' ' << std::get<1>(n.caps[i]);
     }
-    os << ' ' << std::get<2>(c) << '\n';
+    os << ' ' << std::get<2>(n.caps[i]) << '\n';
   }
   if(not n.ress.empty()){
     os << "*RES\n";
   }
-  for(const auto& r: n.ress){
-    os << std::get<0>(r) << ' ' << std::get<1>(r) << ' ' << std::get<2>(r) << '\n';
+  for(size_t i=0; i<n.ress.size(); ++i){
+    os << i+1 << ' ' << std::get<0>(n.ress[i]) << ' ' 
+      << std::get<1>(n.ress[i]) << ' ' << std::get<2>(n.ress[i]) << '\n';
   }
   os << "*END\n";
   return os;  
@@ -347,12 +348,13 @@ struct Spef {
 
   friend void split_on_space(const char*, const char*, std::vector<std::string_view>&);
 
-  bool parse_spef_file(const std::experimental::filesystem::path &);
+  bool read(const std::experimental::filesystem::path &);
   //void read(std::filesystem::path);
 
   // TODO: what is the terminology?
-  
+  void name_expansion();              // Expand everything
   void name_expansion(Net&);
+  void name_expansion(Port&);
 
   private:
   
@@ -390,20 +392,20 @@ inline void Spef::clear(){
 inline std::string Spef::dump() const {
   std::ostringstream os;
   os 
-    << "Standard:"      << GRN << standard         << NRM << "\n" 
-    << "Design name:"   << GRN << design_name      << NRM << "\n" 
-    << "Date:"          << GRN << date             << NRM << "\n" 
-    << "Vendor:"        << GRN << vendor           << NRM << "\n"
-    << "Program:"       << GRN << program          << NRM << "\n"
-    << "Version:"       << GRN << version          << NRM << "\n"
-    << "Design Flow:"   << GRN << design_flow      << NRM << "\n"
-    << "Divider:"       << GRN << divider          << NRM << "\n"
-    << "Delimiter:"     << GRN << delimiter        << NRM << "\n"
-    << "Bus Delimiter:" << GRN << bus_delimiter    << NRM << "\n"
-    << "T_UNIT:"        << GRN << time_unit        << NRM << "\n"
-    << "C_UNIT:"        << GRN << capacitance_unit << NRM << "\n"
-    << "R_UNIT:"        << GRN << resistance_unit  << NRM << "\n"
-    << "L_UNIT:"        << GRN << inductance_unit  << NRM << "\n"
+    << "*SPEF "          <<  standard         << "\n" 
+    << "*DESIGN "        <<  design_name      << "\n" 
+    << "*DATE "          <<  date             << "\n" 
+    << "*VENDOR "        <<  vendor           << "\n"
+    << "*PROGRAM "       <<  program          << "\n"
+    << "*VERSION "       <<  version          << "\n"
+    << "*DESIGN_FLOW "   <<  design_flow      << "\n"
+    << "*DIVIDER "       <<  divider          << "\n"
+    << "*DELIMITER "     <<  delimiter        << "\n"
+    << "*BUS_DELIMITER " <<  bus_delimiter    << "\n"
+    << "*T_UNIT "        <<  time_unit        << "\n"
+    << "*C_UNIT "        <<  capacitance_unit << "\n"
+    << "*R_UNIT "        <<  resistance_unit  << "\n"
+    << "*L_UNIT "        <<  inductance_unit  << "\n"
   ;
   os << '\n';
 
@@ -990,7 +992,7 @@ template<typename T> const std::string Control<T>::error_message = "Fail to matc
 
 // API for parsing --------------------------------------------------------------------------------
 
-inline bool Spef::parse_spef_file(const std::experimental::filesystem::path &p){
+inline bool Spef::read(const std::experimental::filesystem::path &p){
   if(not std::experimental::filesystem::exists(p)){
     std::cout << "The provided path does not exist!\n";
     return false;
@@ -1039,7 +1041,7 @@ inline bool Spef::parse_spef_file(const std::experimental::filesystem::path &p){
 
 inline void string_expansion(std::string& str, 
   const std::unordered_map<size_t, std::string_view>& mapping){
-  if(str.empty()) return ;
+  if(str.empty() or mapping.empty()) return ;
   size_t beg {str.size()};
   size_t end {0};
   size_t last;
@@ -1063,7 +1065,28 @@ inline void string_expansion(std::string& str,
       break;
     }
   }
+}
 
+
+inline void Spef::name_expansion(){
+  for(auto &p: ports){
+    name_expansion(p);
+  }
+  for(auto &n: nets){
+    name_expansion(n);
+  }
+}
+
+inline void Spef::name_expansion(Port& port){
+  if(_name_map.empty()){
+    size_t key;
+    for(auto& [k, v]: name_map){
+      //std::stoi(k, &key);
+      key = ::strtoul(&k.data()[1], nullptr, 10);
+      _name_map.emplace(key, v);
+    }
+  } 
+  string_expansion(port.name, _name_map);
 }
 
 
