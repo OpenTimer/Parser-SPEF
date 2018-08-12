@@ -2,9 +2,17 @@
 A Modern C++17 SPEF parser 
 
 # Get Started with Parser-SPEF
-To use Parser-SPEF, just include the header in your code:
+The following example shows how to use Parser-SPEF to read a SPEF file:
 ```cpp
-#include <Parser-SPEF/spefparser.hpp>
+#include "Parser-SPEF/spefparser.hpp"   // the only include you need
+
+int main(){
+  spef::Spef parser;
+  if(parser.read("path_to_the_spef_file")){
+    // Dump the SPEF file after successful read
+    std::cout << parser.dump() << '\n';
+  }
+}
 ```
 
 
