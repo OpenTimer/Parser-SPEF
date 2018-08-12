@@ -96,12 +96,12 @@ enum class ConnectionType {
 
 std::ostream& operator<<(std::ostream& os, const ConnectionType& c)
 {
-	switch(c){
+  switch(c){
     case ConnectionType::INTERNAL: os << "*I"; break;
     case ConnectionType::EXTERNAL: os << "*P"; break;
-		default    : os.setstate(std::ios_base::failbit);
-	}
-	return os;
+    default    : os.setstate(std::ios_base::failbit);
+  }
+  return os;
 }
 
 
