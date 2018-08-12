@@ -733,6 +733,9 @@ struct Action<RulePort>
 
 //  Net Section -----------------------------------------------------------------------------------
 
+using RuleVar = pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::eof>>>;
+
+
 struct RuleConnBeg: pegtl::seq<TAO_PEGTL_STRING("*CONN")>
 {};
 template <>
@@ -746,7 +749,7 @@ struct Action<RuleConnBeg>
 
 struct RuleConn: pegtl::seq<
   pegtl::sor<TAO_PEGTL_STRING("*P"), TAO_PEGTL_STRING("*I")>, 
-  RuleSpace, RuleToken, RuleSpace, pegtl::must<pegtl::one<'I','O','B'>>, 
+  RuleSpace, RuleVar, RuleSpace, pegtl::must<pegtl::one<'I','O','B'>>, 
   
   pegtl::star<pegtl::sor<
     pegtl::seq<RuleSpace, pegtl::seq<TAO_PEGTL_STRING("*C"), RuleSpace, double_::rule, 
@@ -816,7 +819,7 @@ struct Action<RuleCapBeg>
 
 
 struct RuleCapGround: pegtl::seq<
-  pegtl::plus<pegtl::digit>, RuleSpace, RuleToken, RuleSpace, RuleDouble
+  pegtl::plus<pegtl::digit>, RuleSpace, RuleVar, RuleSpace, RuleDouble
   //double_::rule
 >
 {};
@@ -835,7 +838,7 @@ struct Action<RuleCapGround>
 };
 
 struct RuleCapCouple: pegtl::seq<
-  pegtl::plus<pegtl::digit>, RuleSpace, RuleToken, RuleSpace, RuleToken, RuleSpace, RuleDouble
+  pegtl::plus<pegtl::digit>, RuleSpace, RuleVar, RuleSpace, RuleVar, RuleSpace, RuleDouble
   //double_::rule
 >
 {};
@@ -866,7 +869,7 @@ struct Action<RuleResBeg>
 
 struct RuleRes: pegtl::seq<
   pegtl::plus<pegtl::digit>, RuleSpace,
-  RuleToken, RuleSpace, RuleToken, RuleSpace, double_::rule
+  RuleVar, RuleSpace, RuleVar, RuleSpace, double_::rule
 >
 {};
 template <>
@@ -882,7 +885,7 @@ struct Action<RuleRes>
 };
 
 struct RuleNetBeg: pegtl::seq<
-  TAO_PEGTL_STRING("*D_NET"), pegtl::must<RuleSpace, RuleToken, RuleSpace, double_::rule>
+  TAO_PEGTL_STRING("*D_NET"), pegtl::must<RuleSpace, RuleVar, RuleSpace, double_::rule>
 >
 {};
 template <>
