@@ -7,10 +7,14 @@ The following example shows how to use Parser-SPEF to read a SPEF file:
 #include "Parser-SPEF/spefparser.hpp"   // the only include you need
 
 int main(){
+
   spef::Spef parser;
+
   if(parser.read("path_to_the_spef_file")){
+
     // Dump the SPEF file after successful read
     std::cout << parser.dump() << '\n';
+
   }
 }
 ```
