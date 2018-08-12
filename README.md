@@ -1,6 +1,13 @@
 # Parser-SPEF
 A Modern C++17 SPEF parser 
 
+# Get Started with Parser-SPEF
+To use Parser-SPEF, just include the header in your code:
+```cpp
+#include <Parser-SPEF/spefparser.hpp>
+```
+
+
 
 # Compile Parser-SPEF
 
@@ -34,8 +41,5 @@ to run the unit tests:
 ~$ make test
 ```
 
-# Integrate Parser-SPEF to your Project 
-To use Parser-SPEF in your project, just include the header:
-```cpp
-#include <Parser-SPEF/spefparser.hpp>
-```
+
+
