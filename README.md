@@ -98,7 +98,7 @@ data:
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
 | name   | `std::string` | the name of the net  |
-| connections   | `std::vector<Connection>` | the connection in the *CONN section  |
+| connections   | `std::vector<Connection>` | the connection in the ***CONN** section  |
 | caps   | `std::vector<std::tuple<std::string, std::string, float>>` | the capacitance in the *CAP section  |
 | ress   | `std::vector<std::tuple<std::string, std::string, float>>` | the resistance in the *RES section  |
 
