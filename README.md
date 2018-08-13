@@ -50,7 +50,7 @@ int main(){
 }
 ```
 After the parse succeeds, you can retrieve the parsed data stored in the parser. To compile this example, store 
-the code in `example.cpp` and use the command:
+the code in `example.cpp` and type the command:
 
 ```cpp
 g++ -std=c++17 -I Parser-SPEF/ example.cpp -lstc++fs
