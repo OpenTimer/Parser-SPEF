@@ -3,7 +3,7 @@
 int main(int argc, char* argv[]){
 
   if(argc != 2){
-    std::cout << "Usage: ./simple [spef_file]";
+    std::cout << "Usage: ./simple [SPEF file]";
     return 1;
   }
 
@@ -12,12 +12,12 @@ int main(int argc, char* argv[]){
     return 1;
   }
 
-  // Create a data to be filled by the parser
-  spef::Spef data;
+  // Create a SPEF parser
+  spef::Spef parser;
 
-  // Invoke the parse_spef function and check the return value
-  if(data.read(argv[1])){
+  // Invoke the read function and check the return value
+  if(parser.read(argv[1])){
     // Call dump function to see the content
-    std::cout << data.dump() << '\n';
+    std::cout << parser.dump() << '\n';
   }
 }
