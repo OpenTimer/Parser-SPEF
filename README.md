@@ -49,7 +49,7 @@ int main(){
   }
 }
 ```
-The parser is a `struct Spef` storing the parsed data. The `struct Spef` has following public member data:
+After the parse succeeds, you can access the parsed data stored in the parser. The parser is a `struct Spef` that has following public member data:
 
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
