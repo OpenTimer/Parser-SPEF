@@ -53,7 +53,7 @@ After the parse succeeds, you can retrieve the parsed data stored in the parser.
 the code in `example.cpp` and type the command:
 
 ```cpp
-g++ -std=c++17 -I Parser-SPEF/ example.cpp -lstc++fs
+g++ -std=c++17 -I Parser-SPEF/ example.cpp -lstc++fs -o example
 ```
 
 ### struct Spef 
