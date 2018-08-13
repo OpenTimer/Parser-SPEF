@@ -28,8 +28,9 @@ int main(){
 
 ## System Requirements 
 Parser-SPEF is very self-contained and only requires [PEGTL](https://github.com/taocpp/PEGTL) library (included). 
-To compile Parser-SPEF, you only need:
-+ A GNU [C++ Compiler G++ v7.2](https://gcc.gnu.org/gcc-7/) (or higher) with C++17 support 
+To compile Parser-SPEF, you only need a C++17 compiler:
++ GNU [C++ Compiler G++ v7.2](https://gcc.gnu.org/gcc-7/) (or higher) with C++17 support 
++ Clang 5.0 [C++ Compiler](https://clang.llvm.org/) (or higher) with C++17 support 
 
 Currently Parser-SPEF has been tested to run well on Linux distributions. 
 
