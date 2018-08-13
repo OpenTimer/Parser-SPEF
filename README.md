@@ -70,6 +70,7 @@ The parser is a `struct Spef` storing the parsed data. The `struct Spef` has fol
 | name\_map              | `std::unordered_map<std::string, std::string>` |  a number with an asterisk prefix and the mapped name   in *NAME\_MAP section  |
 | ports                  | `std::vector<Port>`                            |  the set of ports in *PORTS section. `Port` is a `struct` |
 | nets                   | `std::vector<Net> nets`                        |  the set of nets in *D_NET section. `Net` is a `struct`  |
+
 [The public data member of `struct Spef`]
 
 # Compile Parser-SPEF
