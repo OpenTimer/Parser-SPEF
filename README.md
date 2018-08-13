@@ -69,7 +69,7 @@ After the parse succeeds, you can access the parsed data stored in the parser. T
 | inductance\_unit       | `std::string` | the string after the header `*L_UNIT`          |
 | name\_map              | `std::unordered_map<std::string, std::string>` |  the name mapping (a number with an asterisk prefix and the mapped name) in *NAME\_MAP section  |
 | ports                  | `std::vector<Port>` | the set of ports in ***PORTS* section. `Port` is a `struct` |
-| nets                   | `std::vector<Net> nets`| the set of nets in ***D\_NET* section. `Net` is a `struct`  |
+| nets                   | `std::vector<Net> nets`| the set of nets in *D\_NET section. `Net` is a `struct`  |
 
 The `struct Spef` has following public member APIs:
 
