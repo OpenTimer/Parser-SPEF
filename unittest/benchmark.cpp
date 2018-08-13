@@ -5,41 +5,8 @@
 
 TEST_CASE("Benchmark"){
 
-  std::vector<std::string> benchmarks{
-    "../benchmark/ac97_ctrl.spef",
-    "../benchmark/aes_core.spef",
-    "../benchmark/c1355.spef",
-    "../benchmark/c17_slack.spef",
-    "../benchmark/c17.spef",
-    "../benchmark/c1908.spef",
-    "../benchmark/c2670.spef",
-    "../benchmark/c3540.spef",
-    "../benchmark/c3_slack.spef",
-    "../benchmark/c432.spef",
-    "../benchmark/c499.spef",
-    "../benchmark/c5315.spef",
-    "../benchmark/c6288.spef",
-    "../benchmark/c7552_slack.spef",
-    "../benchmark/c7552.spef",
-    "../benchmark/c880.spef",
-    "../benchmark/des_perf.spef",
-    "../benchmark/s1196.spef",
-    "../benchmark/s1494.spef",
-    "../benchmark/s27.spef",
-    "../benchmark/s344.spef",
-    "../benchmark/s349.spef",
-    "../benchmark/s386.spef",
-    "../benchmark/s400.spef",
-    "../benchmark/s510.spef",
-    "../benchmark/s526.spef",
-    "../benchmark/simple.spef",
-    "../benchmark/vga_lcd.spef"
-  };
-
-
-  for(const auto& b: benchmarks){
-    std::cout << b << '\n';
-    const std::string path(b);
+  for(const auto& path: std::experimental::filesystem::directory_iterator("../benchmark/")){
+    std::cout << path << '\n';
     spef::Spef parser;
     REQUIRE(parser.read(path));
 
