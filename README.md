@@ -53,20 +53,20 @@ The parser is a `struct Spef` storing the parsed data. The `struct Spef` has fol
 
 | Name | Type | Description |
 | ------------- |:-------------| :-----|
-| standard               | std::string |  `*SPEf`            |
-| design\_name           | std::string |  `*DESIGN`          |
-| date                   | std::string |  `*DATE`            |
-| vendor                 | std::string |  `*VENDOR`          |
-| program                | std::string |  `*PROGRAM`         |
-| version                | std::string |  `*VERSION`         |
-| design\_flow           | std::string |  `*DESIGN_FLOW`     |
-| divider                | std::string |  `*DIVIDER`         |
-| delimiter              | std::string |  `*DELIMITER`       |
-| bus\_delimiter         | std::string |  `*BUS_DELIMITER`   | 
-| time\_unit             | std::string |  `*T_UNIT`          |
-| capacitance\_unit      | std::string |  `*C_UNIT`          |
-| resistance\_unit       | std::string |  `*R_UNIT`          |
-| inductance\_unit       | std::string |  `*L_UNIT`          |
+| standard               | std::string | description of header `*SPEf`            |
+| design\_name           | std::string | description of header `*DESIGN`          |
+| date                   | std::string | description of header `*DATE`            |
+| vendor                 | std::string | description of header `*VENDOR`          |
+| program                | std::string | description of header `*PROGRAM`         |
+| version                | std::string | description of header `*VERSION`         |
+| design\_flow           | std::string | description of header `*DESIGN_FLOW`     |
+| divider                | std::string | description of header `*DIVIDER`         |
+| delimiter              | std::string | description of header `*DELIMITER`       |
+| bus\_delimiter         | std::string | description of header `*BUS_DELIMITER`   | 
+| time\_unit             | std::string | description of header `*T_UNIT`          |
+| capacitance\_unit      | std::string | description of header `*C_UNIT`          |
+| resistance\_unit       | std::string | description of header `*R_UNIT`          |
+| inductance\_unit       | std::string | description of header `*L_UNIT`          |
 
 
 
