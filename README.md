@@ -53,22 +53,23 @@ The parser is a `struct Spef` storing the parsed data. The `struct Spef` has fol
 
 | Name | Type | Description |
 | ------------- |:-------------:| :--------------|
-| standard               | std::string | string after the header `*SPEf`            |
-| design\_name           | std::string | string after the header `*DESIGN`          |
-| date                   | std::string | string after the header `*DATE`            |
-| vendor                 | std::string | string after the header `*VENDOR`          |
-| program                | std::string | string after the header `*PROGRAM`         |
-| version                | std::string | string after the header `*VERSION`         |
-| design\_flow           | std::string | string after the header `*DESIGN_FLOW`     |
-| divider                | std::string | string after the header `*DIVIDER`         |
-| delimiter              | std::string | string after the header `*DELIMITER`       |
-| bus\_delimiter         | std::string | string after the header `*BUS_DELIMITER`   | 
-| time\_unit             | std::string | string after the header `*T_UNIT`          |
-| capacitance\_unit      | std::string | string after the header `*C_UNIT`          |
-| resistance\_unit       | std::string | string after the header `*R_UNIT`          |
-| inductance\_unit       | std::string | string after the header `*L_UNIT`          |
-
-
+| standard               | `std::string` | the string after the header `*SPEf`            |
+| design\_name           | `std::string` | the string after the header `*DESIGN`          |
+| date                   | `std::string` | the string after the header `*DATE`            |
+| vendor                 | `std::string` | the string after the header `*VENDOR`          |
+| program                | `std::string` | the string after the header `*PROGRAM`         |
+| version                | `std::string` | the string after the header `*VERSION`         |
+| design\_flow           | `std::string` | the string after the header `*DESIGN_FLOW`     |
+| divider                | `std::string` | the string after the header `*DIVIDER`         |
+| delimiter              | `std::string` | the string after the header `*DELIMITER`       |
+| bus\_delimiter         | `std::string` | the string after the header `*BUS_DELIMITER`   | 
+| time\_unit             | `std::string` | the string after the header `*T_UNIT`          |
+| capacitance\_unit      | `std::string` | the string after the header `*C_UNIT`          |
+| resistance\_unit       | `std::string` | the string after the header `*R_UNIT`          |
+| inductance\_unit       | `std::string` | the string after the header `*L_UNIT`          |
+| name\_map              | `std::unordered_map<std::string, std::string>` |  a number with an asterisk prefix and the mapped name     |
+| ports                  | `std::vector<Port>`                            |  the set of ports  |
+| nets                   | `std::vector<Net> nets`                        |  the set of nets   |
 
 
 # Compile Parser-SPEF
