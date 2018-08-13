@@ -49,7 +49,12 @@ int main(){
   }
 }
 ```
-After the parse succeeds, you can retrieve the parsed data stored in the parser. 
+After the parse succeeds, you can retrieve the parsed data stored in the parser. To compile this example, store 
+the code in `example.cpp` and use the command:
+
+```cpp
+g++ -std=c++17 -I Parser-SPEF/ example.cpp -lstc++fs
+```
 
 ### struct Spef 
 The parser is a `struct Spef` that has following public member data:
