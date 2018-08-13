@@ -22,6 +22,103 @@
 
 namespace spef{
 
+enum class ConnectionType {
+  INTERNAL,
+  EXTERNAL
+};
+
+enum class ConnectionDirection {
+  INPUT,
+  OUTPUT,
+  INOUT
+};
+
+struct Port {
+  Port() = default;
+  Port(const std::string& s): name(s){}
+  std::string name;
+  ConnectionDirection direction;  // I, O, B 
+  //char type;  // C, L or S
+  //std::vector<float> values;
+
+  friend std::ostream& operator<<(std::ostream&, const Port&);
+};
+
+struct Connection {
+
+  std::string name;
+  ConnectionType type;
+  ConnectionDirection direction;
+
+  std::optional<std::pair<float, float>> coordinate;
+  std::optional<float> load;    
+  std::string driving_cell;
+
+  Connection() = default;
+  bool operator ==(const Connection& rhs) const;
+  bool operator !=(const Connection& rhs) const;
+};
+
+struct Net {
+  std::string name;
+  float lcap;
+  std::vector<Connection> connections;
+  std::vector<std::tuple<std::string, std::string, float>> caps;
+  std::vector<std::tuple<std::string, std::string, float>> ress;
+
+  Net() = default;
+  Net(const std::string& s, const float f): name{s}, lcap{f} {}
+
+  bool operator ==(const Net& rhs) const;
+  bool operator !=(const Net& rhs) const;
+};
+
+struct Spef {
+  
+  std::string standard;
+  std::string design_name;
+  std::string date;
+  std::string vendor;
+  std::string program;
+  std::string version;
+  std::string design_flow;
+  std::string divider;
+  std::string delimiter;
+  std::string bus_delimiter;
+  std::string time_unit;
+  std::string capacitance_unit;
+  std::string resistance_unit;
+  std::string inductance_unit;
+
+  std::unordered_map<std::string, std::string> name_map;
+  std::vector<Port> ports;
+  std::vector<Net> nets;
+
+  std::string dump() const;
+  void clear();
+
+  template <typename T>
+  friend struct Action;
+
+  friend void split_on_space(const char*, const char*, std::vector<std::string_view>&);
+
+  bool read(const std::experimental::filesystem::path &);
+
+  // TODO: what is the terminology?
+  void name_expansion();              // Expand everything
+  void name_expansion(Net&);
+  void name_expansion(Port&);
+
+  private:
+  
+    Net* _current_net {nullptr};
+    std::vector<std::string_view> _tokens;
+    std::unordered_map<size_t, std::string_view> _name_map;
+};
+
+
+
+
 namespace double_
 {
   using namespace tao::TAO_PEGTL_NAMESPACE;  // NOLINT
@@ -89,10 +186,6 @@ void split_on_space(const char* beg, const char* end, std::vector<std::string_vi
 
 
 
-enum class ConnectionType {
-  INTERNAL,
-  EXTERNAL
-};
 
 std::ostream& operator<<(std::ostream& os, const ConnectionType& c)
 {
@@ -105,17 +198,12 @@ std::ostream& operator<<(std::ostream& os, const ConnectionType& c)
 }
 
 
-enum class ConnectionDirection {
-  INPUT,
-  OUTPUT,
-  INOUT
-};
 
 std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
 {
   switch(c){
     case ConnectionDirection::INPUT  : os << 'I';  break;
-    case ConnectionDirection::OUTPUT : os << 'O'; break;
+    case ConnectionDirection::OUTPUT : os << 'O';  break;
     case ConnectionDirection::INOUT  : os << 'B';  break;
     default    : os.setstate(std::ios_base::failbit);
   }
@@ -123,16 +211,6 @@ std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
 }
 
 
-struct Port {
-  Port() = default;
-  Port(const std::string& s): name(s){}
-  std::string name;
-  ConnectionDirection direction;  // I, O, B 
-  //char type;  // C, L or S
-  //std::vector<float> values;
-
-  friend std::ostream& operator<<(std::ostream&, const Port&);
-};
 
 std::ostream& operator<<(std::ostream& os, const Port& p)  
 {  
@@ -151,20 +229,6 @@ std::ostream& operator<<(std::ostream& os, const Port& p)
 }  
 
 
-struct Connection {
-
-  std::string name;
-  ConnectionType type;
-  ConnectionDirection direction;
-
-  std::optional<std::pair<float, float>> coordinate;
-  std::optional<float> load;    
-  std::string driving_cell;
-
-  Connection() = default;
-  bool operator ==(const Connection& rhs) const;
-  bool operator !=(const Connection& rhs) const;
-};
 
 inline bool Connection::operator != (const Connection& rhs) const {
   return not (*this == rhs);
@@ -228,19 +292,6 @@ std::ostream& operator<<(std::ostream& os, const Connection& c)
 
 
 
-struct Net {
-  std::string name;
-  float lcap;
-  std::vector<Connection> connections;
-  std::vector<std::tuple<std::string, std::string, float>> caps;
-  std::vector<std::tuple<std::string, std::string, float>> ress;
-
-  Net() = default;
-  Net(const std::string& s, const float f): name{s}, lcap{f} {}
-
-  bool operator ==(const Net& rhs) const;
-  bool operator !=(const Net& rhs) const;
-};
 
 inline bool Net::operator !=(const Net& rhs) const{
   return not (*this == rhs);
@@ -315,48 +366,7 @@ std::ostream& operator<<(std::ostream& os, const Net& n)
   return os;  
 }
  
-struct Spef {
-  
-  std::string standard;
-  std::string design_name;
-  std::string date;
-  std::string vendor;
-  std::string program;
-  std::string version;
-  std::string design_flow;
-  std::string divider;
-  std::string delimiter;
-  std::string bus_delimiter;
-  std::string time_unit;
-  std::string capacitance_unit;
-  std::string resistance_unit;
-  std::string inductance_unit;
 
-  std::unordered_map<std::string, std::string> name_map;
-  std::vector<Port> ports;
-  std::vector<Net> nets;
-
-  std::string dump() const;
-  void clear();
-
-  template <typename T>
-  friend struct Action;
-
-  friend void split_on_space(const char*, const char*, std::vector<std::string_view>&);
-
-  bool read(const std::experimental::filesystem::path &);
-
-  // TODO: what is the terminology?
-  void name_expansion();              // Expand everything
-  void name_expansion(Net&);
-  void name_expansion(Port&);
-
-  private:
-  
-    Net* _current_net {nullptr};
-    std::vector<std::string_view> _tokens;
-    std::unordered_map<size_t, std::string_view> _name_map;
-};
 
 inline void Spef::clear(){
   standard.clear();
