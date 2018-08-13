@@ -61,7 +61,7 @@ The parser is a `struct Spef` that has following public member data:
 
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
-| standard               | `std::string` | the string after the header `*SPEf`            |
+| standard               | `std::string` | the string after the header `*SPEF`            |
 | design\_name           | `std::string` | the string after the header `*DESIGN`          |
 | date                   | `std::string` | the string after the header `*DATE`            |
 | vendor                 | `std::string` | the string after the header `*VENDOR`          |
