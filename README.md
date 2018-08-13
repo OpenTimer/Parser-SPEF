@@ -147,6 +147,10 @@ to run the unit tests:
 ~$ make test
 ```
 
+## Examples
+The folder [example] contains a [simple.cpp] that parses a given SPEF file and dump to screen.  
+The folder [benchmark] contains SPEF files from [TAU 2015 contest] and can be supplied as inputs to the 
+[simple.cpp].
 
 # License
 
@@ -171,4 +175,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 [Chun-Xun Lin]:          https://github.com/clin99
 [Martin Wong]:           https://ece.illinois.edu/directory/profile/mdfwong
 [PEG]:                   https://en.wikipedia.org/wiki/Parsing_expression_grammar 
-[Standard Parasitic Exchange Format]: https://en.wikipedia.org/wiki/Standard_Parasitic_Exchange_Format
+[Standard Parasitic Exchange Format]: https://en.wikipedia.org/wiki/Standard_Parasitic_Exchange_Format 
+[example]:               https://github.com/OpenTimer/Parser-SPEF/tree/master/example
+[benchmark]:             https://github.com/OpenTimer/Parser-SPEF/tree/master/benchmark  
+[unittest]:              https://github.com/OpenTimer/Parser-SPEF/tree/master/unittest
+[TAU 2015 contest]:      http://www.tauworkshop.com/2015/contest.html
+[simple.cpp]:            https://github.com/OpenTimer/Parser-SPEF/tree/master/example/simple.cpp
+
