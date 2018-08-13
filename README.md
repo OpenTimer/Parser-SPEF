@@ -35,7 +35,7 @@ circuit. Below is an example:
 The following example shows how to use Parser-SPEF to read a SPEF file:
 
 ```cpp
-#include <Parser-SPEF/spefparser.hpp>   // the only include you need
+#include <Parser-SPEF/parser-spef.hpp>   // the only include you need
 
 int main(){
 
@@ -81,6 +81,16 @@ The `struct Spef` has following public member APIs:
 | name\_expansion | n/a | n/a | expand the mapped names in all ports and nets |
 | name\_expansion | `Net` | n/a | expand the mapped names in a given net |
 | name\_expansion | `Port` | n/a | expand the mapped names in a given port |
+
+
+The `struct Port` stores the information regarding a port in the Port section. `struct Port` has following public member
+data:
+
+| Name | Type | Description |
+| ------------- |:-------------| :--------------|
+| name   | `std::string` | the name of the port   |
+| ConnectionDirection   | `enum class ConnectionDirection` | the direction of the port. The value could be either INPUT, OUTPUT or INOUT.   |
+
 
 
 # Compile Parser-SPEF
