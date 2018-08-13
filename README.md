@@ -49,7 +49,7 @@ int main(){
   }
 }
 ```
-After the parse succeeds, you can retrieve the parsed data stored in the parser. To compile this example, store 
+After the parse succeeds, you can retrieve the parsed data stored in the parser. To compile this example, put
 the code in `example.cpp` and type the command:
 
 ```cpp
