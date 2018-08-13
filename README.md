@@ -1,6 +1,6 @@
 # Parser-SPEF
 
-A Fast C++ Header-only Parser for Standard Parasitic Exchange Format (SPF).
+A Fast C++ Header-only Parser for Standard Parasitic Exchange Format (SPEF).
 
 # Get Started with Parser-SPEF
 
