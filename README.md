@@ -6,7 +6,8 @@ A Fast C++ Header-only Parser for Standard Parasitic Exchange Format (SPEF).
 
 A [Standard Parasitic Exchange Format] (SPEF) file records the parasitics of nets in a
 circuit. Below is an example:
-<img  src="image/circuit.png" width="30%" style="float: right">
+
+<img  style="float: right" src="image/circuit.png"> 
 ```text
 *D_NET Net1 C1+C2+C3+C4+C5
 *CONN 
@@ -27,6 +28,7 @@ circuit. Below is an example:
 5 2 T2 RE
 *END
 ```
+
 
 # Get Started with Parser-SPEF
 
