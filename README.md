@@ -49,7 +49,10 @@ int main(){
   }
 }
 ```
-After the parse succeeds, you can access the parsed data stored in the parser. The parser is a `struct Spef` that has following public member data:
+After the parse succeeds, you can access the parsed data stored in the parser. 
+
+### struct Spef 
+The parser is a `struct Spef` that has following public member data:
 
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
@@ -83,7 +86,8 @@ The `struct Spef` has following public member APIs:
 | name\_expansion | `Port` | n/a | expand the mapped names in a given port |
 
 
-The `struct Port` stores the information regarding a port in the ***PORTS** section. `struct Port` has following public member
+### struct Port
+The `struct Port` stores the information regarding a port in ***PORTS** section. `struct Port` has following public member
 data:
 
 | Name | Type | Description |
@@ -92,7 +96,8 @@ data:
 | ConnectionDirection   | `enum class` | the direction of the port. The value could be either INPUT, OUTPUT or INOUT.   |
 
 
-The `struct Net` stores the information regarding a net in the ***D\_NET** section. `struct Net` has following public member
+### struct Net
+The `struct Net` stores the information regarding a net in ***D\_NET** section. `struct Net` has following public member
 data:
 
 | Name | Type | Description |
