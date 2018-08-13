@@ -72,6 +72,7 @@ The parser is a `struct Spef` storing the parsed data. The `struct Spef` has fol
 | nets                   | `std::vector<Net> nets`| the set of nets in *D_NET section. `Net` is a `struct`  |
 
 The `struct Spef` has following public member APIs:
+
 | Name | Argument | Return | Description |
 | ------ |:-------------| :-------------- | :-------------- |
 | read  | path | bool | parse the file pointed by the path and return `true` if the parse succeeds |
