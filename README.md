@@ -150,6 +150,11 @@ to run the unit tests:
 ## Examples
 The folder [example] contains a [simple.cpp] that parses a given SPEF file and dumps to screen. The folder [benchmark] contains SPEF files from [TAU 2015 contest] and can be supplied as inputs to the [simple.cpp].
 
+| Example | Description | How to Run ? |
+| ------------- |:-------------| :--------------|
+| [simple.cpp] | Read a SPEF file and dump the parsed data to screen | ./simple [path to the SPEF file]  |
+
+
 # License
 
 <img align="right" src="http://opensource.org/trademarks/opensource/OSI-Approved-License-100x137.png">
