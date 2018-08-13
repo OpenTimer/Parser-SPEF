@@ -1005,7 +1005,7 @@ std::string file_to_memory(const std::experimental::filesystem::path &p){
   ifs.seekg(0);
   ifs.read(&buffer[0], buffer.size()); 
   ifs.close();
-  return std::move(buffer);
+  return buffer;
 }
 
 inline bool Spef::read(const std::experimental::filesystem::path &p){

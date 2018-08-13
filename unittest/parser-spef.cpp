@@ -313,23 +313,23 @@ TEST_CASE("Header.Fix"){
     }
   };
   auto add_data = [&](std::string& buf, const std::unordered_map<std::string, std::string>& values){
-      for(const auto& [k, v]: values){
+      for(auto iter: values){
         // Empty or Fix value 
-        if(k.find("UNIT") != std::string::npos or 
-           k.find("DELIMITER") != std::string::npos or
-           k.find("DIVIDER") != std::string::npos){
-          kvp.at(k) = values.at(k);
+        if(iter.first.find("UNIT") != std::string::npos or 
+           iter.first.find("DELIMITER") != std::string::npos or
+           iter.first.find("DIVIDER") != std::string::npos){
+          kvp.at(iter.first) = values.at(iter.first);
         }
         else{
-          kvp.at(k) = rand()%2 == 0 ? "" : values.at(k);
+          kvp.at(iter.first) = rand()%2 == 0 ? "" : values.at(iter.first);
         }
         if(rand()%2 == 0){ 
           // Add to back
-          buf.append(k).append(space()).append(kvp.at(k));
+          buf.append(iter.first).append(space()).append(kvp.at(iter.first));
         }
         else{
           // Add to front
-          buf.insert(0, kvp.at(k)).insert(0, space()).insert(0, k);
+          buf.insert(0, kvp.at(iter.first)).insert(0, space()).insert(0, iter.first);
         }
         add_space(buf);
       }
