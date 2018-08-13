@@ -148,9 +148,7 @@ to run the unit tests:
 ```
 
 ## Examples
-The folder [example] contains a [simple.cpp] that parses a given SPEF file and dump to screen.  
-The folder [benchmark] contains SPEF files from [TAU 2015 contest] and can be supplied as inputs to the 
-[simple.cpp].
+The folder [example] contains a [simple.cpp] that parses a given SPEF file and dump to screen. The folder [benchmark] contains SPEF files from [TAU 2015 contest] and can be supplied as inputs to the [simple.cpp].
 
 # License
 
