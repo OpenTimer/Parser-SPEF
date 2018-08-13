@@ -83,7 +83,7 @@ The `struct Spef` has following public member APIs:
 | name\_expansion | `Port` | n/a | expand the mapped names in a given port |
 
 
-The `struct Port` stores the information regarding a port in the *PORTS section. `struct Port` has following public member
+The `struct Port` stores the information regarding a port in the ***PORTS** section. `struct Port` has following public member
 data:
 
 | Name | Type | Description |
@@ -92,15 +92,15 @@ data:
 | ConnectionDirection   | `enum class` | the direction of the port. The value could be either INPUT, OUTPUT or INOUT.   |
 
 
-The `struct Net` stores the information regarding a net in the *D\_NET section. `struct Net` has following public member
+The `struct Net` stores the information regarding a net in the ***D\_NET** section. `struct Net` has following public member
 data:
 
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
 | name   | `std::string` | the name of the net  |
 | connections   | `std::vector<Connection>` | the connection in the ***CONN** section  |
-| caps   | `std::vector<std::tuple<std::string, std::string, float>>` | the capacitance in the *CAP section  |
-| ress   | `std::vector<std::tuple<std::string, std::string, float>>` | the resistance in the *RES section  |
+| caps   | `std::vector<std::tuple<std::string, std::string, float>>` | the capacitance in the ***CAP** section  |
+| ress   | `std::vector<std::tuple<std::string, std::string, float>>` | the resistance in the ***RES** section  |
 
 
 
