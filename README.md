@@ -82,8 +82,8 @@ The `struct Spef` has following public member APIs:
 | dump  | n/a  | `std::string` |  dump the member data to a `std::string` of SPEF format |
 | clear | n/a  | n/a | clear the content of all member data |
 | name\_expansion | n/a | n/a | expand the mapped names in all ports and nets |
-| name\_expansion | `struct Net` | n/a | expand the mapped names in a given net |
-| name\_expansion | `struct Port` | n/a | expand the mapped names in a given port |
+| name\_expansion | `Net` | n/a | expand the mapped names in a given net |
+| name\_expansion | `Port` | n/a | expand the mapped names in a given port |
 
 
 ### struct Port
