@@ -47,16 +47,16 @@ enable_testing()
 
 message(STATUS "Building unit tests ...")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/unittest)
-add_executable(spefparser unittest/spefparser.cpp)
-target_link_libraries(spefparser stdc++fs)
+add_executable(parser-spef unittest/parser-spef.cpp)
+target_link_libraries(parser-spef stdc++fs)
 
-add_test(HeaderFix ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Header.Fix)
-add_test(HeaderRandom ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Header.Random)
-add_test(NameMap ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=NameMap)
-add_test(Port ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Port)
-add_test(Net ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=Net)
-add_test(NameExpansion ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=NAME_EXPANSION)
-add_test(All ${PROJECT_SOURCE_DIR}/unittest/spefparser -tc=All)
+add_test(HeaderFix ${PROJECT_SOURCE_DIR}/unittest/parser-spef -tc=Header.Fix)
+add_test(HeaderRandom ${PROJECT_SOURCE_DIR}/unittest/parser-spef -tc=Header.Random)
+add_test(NameMap ${PROJECT_SOURCE_DIR}/unittest/parser-spef -tc=NameMap)
+add_test(Port ${PROJECT_SOURCE_DIR}/unittest/parser-spef -tc=Port)
+add_test(Net ${PROJECT_SOURCE_DIR}/unittest/parser-spef -tc=Net)
+add_test(NameExpansion ${PROJECT_SOURCE_DIR}/unittest/parser-spef -tc=NAME_EXPANSION)
+add_test(All ${PROJECT_SOURCE_DIR}/unittest/parser-spef -tc=All)
 
 
 
