@@ -77,7 +77,7 @@ The parser is a `struct Spef` that has following public member data:
 The `struct Spef` has following public member APIs:
 
 | Name | Argument | Return | Description |
-| ------ |:-------------| :-------------- | :-------------- |
+| ------ |:------------------| :-------------- | :-------------- |
 | read  | path | bool | parse the file pointed by the path and return `true` if the parser succeeds |
 | dump  | n/a  | `std::string` |  dump the member data to a `std::string` of SPEF format |
 | clear | n/a  | n/a | clear the content of all member data |
