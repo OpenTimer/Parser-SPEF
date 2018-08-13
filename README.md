@@ -35,7 +35,7 @@ circuit. Below is an example:
 The following example shows how to use Parser-SPEF to read a SPEF file:
 
 ```cpp
-#include <Parser-SPEF/parser-spef.hpp>   // the only include you need
+#include "Parser-SPEF/parser-spef.hpp"   // the only include you need
 
 int main(){
 
