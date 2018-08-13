@@ -89,7 +89,7 @@ data:
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
 | name   | `std::string` | the name of the port   |
-| ConnectionDirection   | `enum class ConnectionDirection` | the direction of the port. The value could be either INPUT, OUTPUT or INOUT.   |
+| ConnectionDirection   | `enum class` | the direction of the port. The value could be either INPUT, OUTPUT or INOUT.   |
 
 
 
