@@ -1088,7 +1088,6 @@ inline void Spef::name_expansion(Port& port){
   if(_name_map.empty()){
     size_t key;
     for(auto& [k, v]: name_map){
-      //std::stoi(k, &key);
       key = ::strtoul(&k.data()[1], nullptr, 10);
       _name_map.emplace(key, v);
     }
@@ -1101,7 +1100,6 @@ inline void Spef::name_expansion(Net& net){
   if(_name_map.empty()){
     size_t key;
     for(auto& [k, v]: name_map){
-      //std::stoi(k, &key);
       key = ::strtoul(&k.data()[1], nullptr, 10);
       _name_map.emplace(key, v);
     }
