@@ -52,7 +52,7 @@ int main(){
 The parser is a `struct Spef` storing the parsed data. The `struct Spef` has following public member data:
 
 | Name | Type | Description |
-| ------------- |:-------------:| :--------------|
+| ------------- |:-------------| :--------------|
 | standard               | `std::string` | the string after the header `*SPEf`            |
 | design\_name           | `std::string` | the string after the header `*DESIGN`          |
 | date                   | `std::string` | the string after the header `*DATE`            |
