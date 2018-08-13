@@ -9,26 +9,22 @@ circuit. Below is an example:
 <img align="right" src="image/circuit.png" width="30%">
 ```text
 *D_NET Net1 C1+C2+C3+C4+C5
-
 *CONN 
 *I Z O
 *I T1 I
 *I T2 I
-
 *CAP
 1 1 C1
 2 2 C2
 3 3 C3
 4 T1 C4
 5 T2 C5 
-
 *RES 
 1 Z 3 RA
 2 3 2 RB
 3 1 3 RC
 4 1 T1 RD
 5 2 T2 RE
-
 *END
 ```
 
