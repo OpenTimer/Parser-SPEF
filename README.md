@@ -71,6 +71,15 @@ The parser is a `struct Spef` storing the parsed data. The `struct Spef` has fol
 | ports                  | `std::vector<Port>` | the set of ports in *PORTS section. `Port` is a `struct` |
 | nets                   | `std::vector<Net> nets`| the set of nets in *D_NET section. `Net` is a `struct`  |
 
+The `struct Spef` has following public member APIs:
+| Name | Argument | Return | Description |
+| ------ |:-------------| :-------------- | :-------------- |
+| read  | path | bool | parse the file pointed by the path and return `true` if the parse succeeds |
+| dump  | n/a  | `std::string` |  dump the member data to a `std::string` of SPEF format |
+| clear | n/a  | n/a | clear the content of all member data |
+| name\_expansion | n/a | n/a | expand the mapped names in all ports and nets |
+| name\_expansion | `Net` | n/a | expand the mapped names in a given net |
+| name\_expansion | `Port` | n/a | expand the mapped names in a given port |
 
 
 # Compile Parser-SPEF
