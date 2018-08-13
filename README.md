@@ -1,11 +1,13 @@
 # Parser-SPEF
-A Modern C++17 SPEF parser based on the [Parsing Expression Grammar](https://en.wikipedia.org/wiki/Parsing_expression_grammar). 
 
+A Fast C++ Header-only Parser for Standard Parasitic Exchange Format (SPEF).
 
 # Get Started with Parser-SPEF
+
 The following example shows how to use Parser-SPEF to read a SPEF file:
+
 ```cpp
-#include "Parser-SPEF/spefparser.hpp"   // the only include you need
+#include <Parser-SPEF/spefparser.hpp>   // the only include you need
 
 int main(){
 
@@ -59,9 +61,9 @@ to run the unit tests:
 
 <img align="right" src="http://opensource.org/trademarks/opensource/OSI-Approved-License-100x137.png">
 
-OpenTimer is licensed under the [MIT License](./LICENSE):
+Parser-SPEF is licensed under the [MIT License](./LICENSE):
 
-Copyright &copy; 2018 [Dr. Tsung-Wei Huang][Tsung-Wei Huang] and [Dr. Martin Wong][Martin Wong]
+Copyright &copy; 2018 [Chun-Xun Lin][Chun-Xun Lin], [Tsung-Wei Huang][Tsung-Wei Huang] and [Martin Wong][Martin Wong]
 
 The University of Illinois at Urbana-Champaign, IL, USA
 
@@ -77,3 +79,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 [Tsung-Wei Huang]:       http://web.engr.illinois.edu/~thuang19/
 [Chun-Xun Lin]:          https://github.com/clin99
 [Martin Wong]:           https://ece.illinois.edu/directory/profile/mdfwong
+[PEG]:                   https://en.wikipedia.org/wiki/Parsing_expression_grammar
