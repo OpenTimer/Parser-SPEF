@@ -49,46 +49,26 @@ int main(){
   }
 }
 ```
-The parser is a `struct Spef` storing the parsed data. The `struct Spef` has following public members:
+The parser is a `struct Spef` storing the parsed data. The `struct Spef` has following public member data:
 
-```cpp
-struct Spef {
-  
-  std::string standard;
-  std::string design_name;
-  std::string date;
-  std::string vendor;
-  std::string program;
-  std::string version;
-  std::string design_flow;
-  std::string divider;
-  std::string delimiter;
-  std::string bus_delimiter;
-  std::string time_unit;
-  std::string capacitance_unit;
-  std::string resistance_unit;
-  std::string inductance_unit;
+| Name | Type | Description |
+| standard               | std::string |  `*SPEf`            |
+| design\_name           | std::string |  `*DESIGN`          |
+| date                   | std::string |  `*DATE`            |
+| vendor                 | std::string |  `*VENDOR`          |
+| program                | std::string |  `*PROGRAM`         |
+| version                | std::string |  `*VERSION`         |
+| design\_flow           | std::string |  `*DESIGN_FLOW`     |
+| divider                | std::string |  `*DIVIDER`         |
+| delimiter              | std::string |  `*DELIMITER`       |
+| bus\_delimiter         | std::string |  `*BUS_DELIMITER`   | 
+| time\_unit             | std::string |  `*T_UNIT`          |
+| capacitance\_unit      | std::string |  `*C_UNIT`          |
+| resistance\_unit       | std::string |  `*R_UNIT`          |
+| inductance\_unit       | std::string |  `*L_UNIT`          |
 
-  std::unordered_map<std::string, std::string> name_map;
-  std::vector<Port> ports;
-  std::vector<Net> nets;
 
-  std::string dump() const;
-  void clear();
 
-  template <typename T>
-  friend struct Action;
-
-  friend void split_on_space(const char*, const char*, std::vector<std::string_view>&);
-
-  bool read(const std::experimental::filesystem::path &);
-
-  // TODO: what is the terminology?
-  void name_expansion();              // Expand everything
-  void name_expansion(Net&);
-  void name_expansion(Port&);
-};
-```
 
 # Compile Parser-SPEF
 
