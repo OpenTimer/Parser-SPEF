@@ -1,9 +1,6 @@
 #ifndef SPEF_HPP_
 #define SPEF_HPP_
 
-// TODO:
-// add constructor for sub structs so we can fully utilize the try_emplace
-
 #include <pegtl/include/tao/pegtl.hpp>
 #include <iostream>
 #include <cstring>
@@ -35,12 +32,11 @@ enum class ConnectionDirection {
 
 struct Port {
   Port() = default;
-  Port(const std::string& s): name(s){}
+  Port(const std::string& s): name(s) {}
   std::string name;
   ConnectionDirection direction;  // I, O, B 
-  //char type;  // C, L or S
-  //std::vector<float> values;
 
+  // TODO: move this to global scope
   friend std::ostream& operator<<(std::ostream&, const Port&);
 };
 
@@ -55,6 +51,8 @@ struct Connection {
   std::string driving_cell;
 
   Connection() = default;
+
+  // TODO: move operators to global score
   bool operator ==(const Connection& rhs) const;
   bool operator !=(const Connection& rhs) const;
 };
@@ -68,7 +66,8 @@ struct Net {
 
   Net() = default;
   Net(const std::string& s, const float f): name{s}, lcap{f} {}
-
+  
+  // TODO: move operators to global scope
   bool operator ==(const Net& rhs) const;
   bool operator !=(const Net& rhs) const;
 };
@@ -89,7 +88,8 @@ struct Spef {
   std::string capacitance_unit;
   std::string resistance_unit;
   std::string inductance_unit;
-
+  
+  // TODO: use size_t vs std::string
   std::unordered_map<std::string, std::string> name_map;
   std::vector<Port> ports;
   std::vector<Net> nets;
@@ -99,15 +99,13 @@ struct Spef {
 
   template <typename T>
   friend struct Action;
-
-  friend void split_on_space(const char*, const char*, std::vector<std::string_view>&);
-
+  
   bool read(const std::experimental::filesystem::path &);
 
-  // TODO: what is the terminology?
-  void name_expansion();              // Expand everything
-  void name_expansion(Net&);
-  void name_expansion(Port&);
+  // TODO: 
+  void expand_name();              // Expand everything
+  void expand_name(Net&);
+  void expand_name(Port&);
 
   private:
   
@@ -117,7 +115,13 @@ struct Spef {
 };
 
 
+// ------------------------------------------------------------------------------------------------
 
+// TODO:
+//bool operator == (const Connection& lsh, const Connection& rhs) {
+//}
+
+// ------------------------------------------------------------------------------------------------
 
 namespace double_
 {
@@ -150,10 +154,8 @@ namespace double_
 };
 
 
-
-
 // Function: split_on_space 
-void split_on_space(const char* beg, const char* end, std::vector<std::string_view>& tokens) {
+inline void split_on_space(const char* beg, const char* end, std::vector<std::string_view>& tokens) {
 
   // Parse the token.
   const char *token {nullptr};
@@ -181,12 +183,7 @@ void split_on_space(const char* beg, const char* end, std::vector<std::string_vi
   } 
 }
 
-
-
-
-
-
-
+// TODO: use inline to avoid multiple definitions
 std::ostream& operator<<(std::ostream& os, const ConnectionType& c)
 {
   switch(c){
@@ -196,8 +193,6 @@ std::ostream& operator<<(std::ostream& os, const ConnectionType& c)
   }
   return os;
 }
-
-
 
 std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
 {
@@ -209,7 +204,6 @@ std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
   }
 	return os;
 }
-
 
 
 std::ostream& operator<<(std::ostream& os, const Port& p)  
@@ -391,7 +385,6 @@ inline void Spef::clear(){
 }
 
 
-
 inline std::string Spef::dump() const {
   std::ostringstream os;
   os 
@@ -432,38 +425,37 @@ inline std::string Spef::dump() const {
   return os.str();
 }
 
-
-
+// ------------------------------------------------------------------------------------------------
+// Begin of PEG rules
+// ------------------------------------------------------------------------------------------------
 
 namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 
-
-
-
 using RuleToken = pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>, pegtl::eof>>>;
-//using RuleToken = pegtl::sor<pegtl::until<pegtl::at<pegtl::space>>, pegtl::until<pegtl::at<pegtl::one<'*'>>>>;
-//pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>>>>;
 using RuleDontCare = pegtl::star<pegtl::space>;
 using RuleSpace = pegtl::plus<pegtl::space>;
 
 struct RuleDouble : pegtl::seq<double_::rule, pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>>>>
 {};
 
-
 template<typename T>
 struct Action: pegtl::nothing<T>
 {};
 
+// TODO: RuleQuote
 struct Quote: pegtl::string<'"'>
 {};
+
 struct QuotedString: pegtl::if_must<Quote, pegtl::until<Quote>>
 {};
 
+// TODO: RuleHeaderValue
 struct Header: pegtl::plus<pegtl::seq<QuotedString, pegtl::star<RuleSpace, QuotedString>>>
 {};
 
 struct Divider: pegtl::any 
 {};
+
 template<>
 struct Action<Divider>  
 {
@@ -477,8 +469,10 @@ struct Action<Divider>
   };
 };
 
+// TODO: RuleDelimiter
 struct Delimiter: pegtl::any 
 {};
+
 template<>
 struct Action<Delimiter>  
 {
@@ -494,6 +488,7 @@ struct Action<Delimiter>
 
 struct BusDelimiter: pegtl::must<pegtl::any, pegtl::star<pegtl::space>, pegtl::any>
 {};
+
 template<>
 struct Action<BusDelimiter>  
 {
@@ -506,32 +501,32 @@ struct Action<BusDelimiter>
   };
 };
 
-
-
-
-
 //  Header Section -------------------------------------------------------------------------------- 
 
+// TODO: inline or constexpr
 const char* header_begin(const char* beg){
   while(std::isspace(*beg)){
-    ++ beg;
+    ++beg;
   }
   return beg;
 }
 
 struct RuleStandard: pegtl::seq<TAO_PEGTL_STRING("*SPEF"), pegtl::opt<RuleSpace, Header>>
 {};
+
 template<>
 struct Action<RuleStandard>  
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
+    // TODO: make the following search an utility
     d.standard = in.string().erase(0, header_begin(in.begin()+sizeof("*SPEF"))-in.begin());
   };
 };
 
 struct RuleDesign: pegtl::seq<TAO_PEGTL_STRING("*DESIGN"), pegtl::opt<RuleSpace, Header>>
 {};
+
 template<>
 struct Action<RuleDesign>  
 {
@@ -543,6 +538,7 @@ struct Action<RuleDesign>
 
 struct RuleDate: pegtl::seq<TAO_PEGTL_STRING("*DATE"), pegtl::opt<RuleSpace, Header>>
 {};
+
 template<>
 struct Action<RuleDate>  
 {
@@ -555,6 +551,7 @@ struct Action<RuleDate>
 
 struct RuleVendor: pegtl::seq<TAO_PEGTL_STRING("*VENDOR"), pegtl::opt<RuleSpace, Header>>
 {};
+
 template<>
 struct Action<RuleVendor>  
 {
@@ -567,6 +564,7 @@ struct Action<RuleVendor>
 
 struct RuleProgram: pegtl::seq<TAO_PEGTL_STRING("*PROGRAM"), pegtl::opt<RuleSpace, Header>>
 {};
+
 template<>
 struct Action<RuleProgram>  
 {
@@ -578,6 +576,7 @@ struct Action<RuleProgram>
 
 struct RuleVersion: pegtl::seq<TAO_PEGTL_STRING("*VERSION"), pegtl::opt<RuleSpace, Header>>
 {};
+
 template<>
 struct Action<RuleVersion>  
 {
@@ -589,6 +588,7 @@ struct Action<RuleVersion>
 
 struct RuleDesignFlow: pegtl::seq<TAO_PEGTL_STRING("*DESIGN_FLOW"), pegtl::opt<RuleSpace, Header>>
 {};
+
 template<>
 struct Action<RuleDesignFlow>  
 {
@@ -612,6 +612,7 @@ struct RuleUnit: pegtl::seq<TAO_PEGTL_STRING("*"), pegtl::one<'T','C','R','L'>,
   TAO_PEGTL_STRING("_UNIT"), 
   pegtl::must<RuleSpace, double_::rule, RuleSpace, RuleToken>
 >
+
 {};
 template <>
 struct Action<RuleUnit>  
@@ -635,9 +636,9 @@ struct Action<RuleUnit>
 
 
 //  Name Map Section -------------------------------------------------------------------------------
-//struct RuleNameMapBeg: pegtl::seq<TAO_PEGTL_STRING("*NAME_MAP"), RuleSpace>
 struct RuleNameMapBeg: pegtl::seq<TAO_PEGTL_STRING("*NAME_MAP"), RuleDontCare>
 {};
+
 template <>
 struct Action<RuleNameMapBeg>  
 {
@@ -667,6 +668,7 @@ struct Action<RuleNameMap>
 
 struct RulePortBeg: pegtl::seq<TAO_PEGTL_STRING("*PORTS"), RuleDontCare>
 {};
+
 template <>
 struct Action<RulePortBeg>  
 {
@@ -694,6 +696,7 @@ struct RulePort: pegtl::seq<
   >
 >
 {};
+
 template <>
 struct Action<RulePort>  
 {
@@ -720,6 +723,8 @@ struct Action<RulePort>
         break;
     }
 
+    // TODO: (in the future)
+
     //// Set up type 
     //if(d._tokens.size() > 2){
     //  p.type = d._tokens[2][1];
@@ -733,16 +738,14 @@ struct Action<RulePort>
   }
 };
 
-
-
-
 //  Net Section -----------------------------------------------------------------------------------
 
+// RuleVar represents a token to not stop at '*'
 using RuleVar = pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::eof>>>;
-
 
 struct RuleConnBeg: pegtl::seq<TAO_PEGTL_STRING("*CONN")>
 {};
+
 template <>
 struct Action<RuleConnBeg>
 {
@@ -750,7 +753,6 @@ struct Action<RuleConnBeg>
   static void apply(const Input& in, Spef& d){
   }
 };
-
 
 struct RuleConn: pegtl::seq<
   pegtl::sor<TAO_PEGTL_STRING("*P"), TAO_PEGTL_STRING("*I")>, 
@@ -768,6 +770,7 @@ struct RuleConn: pegtl::seq<
   >
 >
 {};
+
 template <>
 struct Action<RuleConn>
 {
@@ -807,6 +810,7 @@ struct Action<RuleConn>
         i += 1;
       }
       else{
+        // TODO: remove cout (check the entire file...)
         std::cout << "Unknown connection information!\n";
       }
     }
@@ -815,6 +819,7 @@ struct Action<RuleConn>
 
 struct RuleCapBeg: pegtl::seq<TAO_PEGTL_STRING("*CAP")>
 {};
+
 template <>
 struct Action<RuleCapBeg>
 {
@@ -825,16 +830,16 @@ struct Action<RuleCapBeg>
 
 struct RuleCapGround: pegtl::seq<
   pegtl::plus<pegtl::digit>, RuleSpace, RuleVar, RuleSpace, RuleDouble
-  //double_::rule
 >
 {};
+
 template <>
 struct Action<RuleCapGround>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     split_on_space(in.begin(), in.end(), d._tokens);
-    // TODO: verify...?
+    // we don't care the first numbering token
     d._current_net->caps.emplace_back(
       std::forward_as_tuple(d._tokens[1], "", std::strtof(d._tokens[2].data(), nullptr))
     );
@@ -843,9 +848,9 @@ struct Action<RuleCapGround>
 
 struct RuleCapCouple: pegtl::seq<
   pegtl::plus<pegtl::digit>, RuleSpace, RuleVar, RuleSpace, RuleVar, RuleSpace, RuleDouble
-  //double_::rule
 >
 {};
+
 template <>
 struct Action<RuleCapCouple>
 {
@@ -858,11 +863,9 @@ struct Action<RuleCapCouple>
   }
 };
 
-
-
-
 struct RuleResBeg: pegtl::seq<TAO_PEGTL_STRING("*RES")>
 {};
+
 template <>
 struct Action<RuleResBeg>
 {
@@ -875,6 +878,7 @@ struct RuleRes: pegtl::seq<
   RuleVar, RuleSpace, RuleVar, RuleSpace, double_::rule
 >
 {};
+
 template <>
 struct Action<RuleRes>
 {
@@ -891,13 +895,13 @@ struct RuleNetBeg: pegtl::seq<
   TAO_PEGTL_STRING("*D_NET"), pegtl::must<RuleSpace, RuleVar, RuleSpace, double_::rule>
 >
 {};
+
 template <>
 struct Action<RuleNetBeg>  
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     split_on_space(in.begin(), in.end(), d._tokens);
-    
     d._current_net = &(d.nets.emplace_back());
     d._current_net->name = d._tokens[1];
     d._current_net->lcap = std::strtof(d._tokens[2].data(), nullptr);
@@ -907,6 +911,7 @@ struct Action<RuleNetBeg>
 
 struct RuleNetEnd: pegtl::seq<TAO_PEGTL_STRING("*END")>
 {};
+
 template <>
 struct Action<RuleNetEnd>
 {
@@ -914,28 +919,25 @@ struct Action<RuleNetEnd>
   static void apply(const Input& in, Spef& d){}
 };
 
-
 struct RuleInputEnd: pegtl::star<pegtl::any>
 {};
+
 template <>
 struct Action<RuleInputEnd>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     if(in.size() != 0){
-      //std::cout << d.dump() << "\n\n\n";
-      //std::cout << "=>" << in.string() << "<=\n";
       throw tao::pegtl::parse_error("Unrecognized token", in);
     }
   }
 };
 
 
+// Spef Top Rule ----------------------------------------------------------------------------------
 
-
-
-// Spef Top Rule ----------------------------------------------------------------------------------- 
-struct RuleSpef: pegtl::must<pegtl::star<pegtl::space>,
+struct RuleSpef: pegtl::must<
+  pegtl::star<pegtl::space>,  // strip leading space
   pegtl::rep_max<10, 
     pegtl::sor<
       pegtl::seq<RuleStandard,     RuleDontCare>,
@@ -966,13 +968,14 @@ struct RuleSpef: pegtl::must<pegtl::star<pegtl::space>,
       RuleNetEnd, RuleDontCare
     >
   >,
-  pegtl::star<pegtl::space>, 
-  RuleInputEnd
+  pegtl::star<pegtl::space>,  // strip trailing spaces
+  RuleInputEnd                // can't have anything more
 >
 {};
 
 
 // Error control ----------------------------------------------------------------------------------
+
 template<typename Rule>
 struct Control : tao::pegtl::normal<Rule>
 {
@@ -985,14 +988,14 @@ struct Control : tao::pegtl::normal<Rule>
    }
 };
 
-template<typename T> const std::string Control<T>::error_message = "Fail to match the Spef rule: " + 
-  tao::pegtl::internal::demangle< T>() ;
-
-
-
+template<typename T> 
+const std::string Control<T>::error_message = 
+  "Fail to match the Spef rule: " + tao::pegtl::internal::demangle<T>() ;
 
 // API for parsing --------------------------------------------------------------------------------
 
+
+// TODO: mutiplie definitions...
 std::string file_to_memory(const std::experimental::filesystem::path &p){
   if(not std::experimental::filesystem::exists(p)){
     std::cout << "The provided path does not exist!\n";
@@ -1036,7 +1039,7 @@ inline bool Spef::read(const std::experimental::filesystem::path &p){
     return true;
   }
   catch(const tao::pegtl::parse_error& e){
-
+    // TODO: use cerr instead of cout ...
     std::cout << e.what() << std::endl;
     const auto p = e.positions.front();
     std::cout << "Fail at line " << p.line << ":\n";
@@ -1075,16 +1078,16 @@ inline void string_expansion(std::string& str,
 }
 
 
-inline void Spef::name_expansion(){
+inline void Spef::expand_name(){
   for(auto &p: ports){
-    name_expansion(p);
+    expand_name(p);
   }
   for(auto &n: nets){
-    name_expansion(n);
+    expand_name(n);
   }
 }
 
-inline void Spef::name_expansion(Port& port){
+inline void Spef::expand_name(Port& port){
   if(_name_map.empty()){
     size_t key;
     for(auto& [k, v]: name_map){
@@ -1096,7 +1099,7 @@ inline void Spef::name_expansion(Port& port){
 }
 
 
-inline void Spef::name_expansion(Net& net){
+inline void Spef::expand_name(Net& net){
   if(_name_map.empty()){
     size_t key;
     for(auto& [k, v]: name_map){
