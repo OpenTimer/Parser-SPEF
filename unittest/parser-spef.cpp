@@ -566,7 +566,7 @@ TEST_CASE("NAME_EXPANSION"){
         }
       }
     }
-    spef::string_expansion(key, mapping);
+    spef::expand_string(key, mapping);
     REQUIRE(key == value);
   }
 }

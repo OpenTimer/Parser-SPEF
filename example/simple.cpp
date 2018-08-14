@@ -3,21 +3,29 @@
 int main(int argc, char* argv[]){
 
   if(argc != 2){
-    std::cout << "Usage: ./simple [SPEF file]";
-    return 1;
+    std::cerr << "Usage: ./simple [SPEF file]\n";
+    std::exit(EXIT_FAILURE);
   }
 
   if(not std::experimental::filesystem::exists(argv[1])){
-    std::cout << "Cannot found " <<  argv[1] << '\n';
-    return 1;
+    std::cerr << "can't find " <<  argv[1] << '\n';
+    std::exit(EXIT_FAILURE);
   }
 
-  // Create a SPEF parser
-  spef::Spef parser;
+  // Create a SPEF object
+  spef::Spef spef;
 
   // Invoke the read function and check the return value
-  if(parser.read(argv[1])){
-    // Call dump function to see the content
-    std::cout << parser.dump() << '\n';
+  if(!spef.read(argv[1])){
+    std::cerr << *spef.error;
+    std::exit(EXIT_FAILURE);
   }
+
+  // TODO: 
+
+
+  // Or you can dump to a SPEF.
+  //std::cout << spef.dump();
 }
+
+

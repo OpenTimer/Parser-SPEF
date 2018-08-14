@@ -3,6 +3,7 @@
 
 #include <pegtl/include/tao/pegtl.hpp>
 #include <iostream>
+#include <iomanip>
 #include <cstring>
 #include <algorithm>
 #include <utility>
@@ -19,17 +20,24 @@
 
 namespace spef{
 
+// ------------------------------------------------------------------------------------------------
+// Parser-SPEF stores the data to the folloing data structures.
+// ------------------------------------------------------------------------------------------------
+
+// TODO:
 enum class ConnectionType {
   INTERNAL,
   EXTERNAL
 };
 
+// TODO:
 enum class ConnectionDirection {
   INPUT,
   OUTPUT,
   INOUT
 };
 
+// TODO:
 struct Port {
   Port() = default;
   Port(const std::string& s): name(s) {}
@@ -37,6 +45,7 @@ struct Port {
   ConnectionDirection direction;  // I, O, B 
 };
 
+// TODO:
 struct Connection {
 
   std::string name;
@@ -48,12 +57,9 @@ struct Connection {
   std::string driving_cell;
 
   Connection() = default;
-
-  // TODO: move operators to global score
-  //bool operator ==(const Connection& rhs) const;
-  //bool operator !=(const Connection& rhs) const;
 };
 
+// TODO:
 struct Net {
   std::string name;
   float lcap;
@@ -63,13 +69,16 @@ struct Net {
 
   Net() = default;
   Net(const std::string& s, const float f): name{s}, lcap{f} {}
-  
-  // TODO: move operators to global scope
-  //bool operator ==(const Net& rhs) const;
-  //bool operator !=(const Net& rhs) const;
 };
 
+// TODO
 struct Spef {
+
+  struct Error {
+    std::string line;
+    size_t line_number;
+    size_t byte_in_line;
+  };
   
   std::string standard;
   std::string design_name;
@@ -86,13 +95,14 @@ struct Spef {
   std::string resistance_unit;
   std::string inductance_unit;
   
-  // TODO: use size_t vs std::string
-  //std::unordered_map<std::string, std::string> name_map;
   std::unordered_map<size_t, std::string> name_map;
   std::vector<Port> ports;
   std::vector<Net> nets;
 
+  std::optional<Error> error;
+
   std::string dump() const;
+
   void clear();
 
   bool read(const std::experimental::filesystem::path &);
@@ -110,13 +120,9 @@ struct Spef {
     std::vector<std::string_view> _tokens;
 };
 
-
 // ------------------------------------------------------------------------------------------------
-
-// TODO:
-//bool operator == (const Connection& lsh, const Connection& rhs) {
-//}
-
+// DO NOT CHANGE ANYTHING BELOW UNLESS YOU KNOW WHAT YOU ARE DOING!
+// (development use only)
 // ------------------------------------------------------------------------------------------------
 
 namespace double_
@@ -179,13 +185,11 @@ inline void split_on_space(const char* beg, const char* end, std::vector<std::st
   } 
 }
 
-// TODO: use inline to avoid multiple definitions
 inline std::ostream& operator<<(std::ostream& os, const ConnectionType& c)
 {
   switch(c){
     case ConnectionType::INTERNAL: os << "*I"; break;
     case ConnectionType::EXTERNAL: os << "*P"; break;
-    default    : os.setstate(std::ios_base::failbit);
   }
   return os;
 }
@@ -196,7 +200,6 @@ inline std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
     case ConnectionDirection::INPUT  : os << 'I';  break;
     case ConnectionDirection::OUTPUT : os << 'O';  break;
     case ConnectionDirection::INOUT  : os << 'B';  break;
-    default    : os.setstate(std::ios_base::failbit);
   }
 	return os;
 }
@@ -209,17 +212,13 @@ inline std::ostream& operator<<(std::ostream& os, const Port& p)
     case ConnectionDirection::INPUT:  os << 'I'; break;
     case ConnectionDirection::OUTPUT: os << 'O'; break;
     case ConnectionDirection::INOUT:  os << 'B'; break;
-    default: break;
   }
-  //os << p.type << ' ';
-  //for(const auto&v : p.values){
-  //  os << v << ' ';
-  //}
   return os;  
 }  
 
 
 inline bool operator == (const Connection& lhs, const Connection& rhs) {
+
   auto is_same_float = [](float a, float b){ 
     if(::fabs(a-b) > 1e-3){
       return false;
@@ -353,9 +352,11 @@ inline std::ostream& operator<<(std::ostream& os, const Net& n)
   return os;  
 }
  
-
-
+// --------------------------------------------------------
+// Begin Spef definition
+// --------------------------------------------------------
 inline void Spef::clear(){
+
   standard.clear();
   design_name.clear();
   date.clear();
@@ -375,6 +376,11 @@ inline void Spef::clear(){
   name_map.clear();
   ports.clear();
   nets.clear();
+
+  error.reset();
+
+  _current_net = nullptr;
+  _tokens.clear();
 }
 
 // Procedure: dump the Spef to a string in SPEF format
@@ -418,6 +424,14 @@ inline std::string Spef::dump() const {
   return os.str();
 }
 
+// Operator: <<
+inline std::ostream& operator << (std::ostream& os, const Spef::Error& err) {
+  os << "error at line " << err.line_number << ":\n";
+  os << "  " << err.line << '\n';
+  os << std::setw(err.byte_in_line + 3) << '^' << '\n';
+  return os;
+}
+
 // ------------------------------------------------------------------------------------------------
 // Begin of PEG rules
 // ------------------------------------------------------------------------------------------------
@@ -438,14 +452,12 @@ template<typename T>
 struct Action: pegtl::nothing<T>
 {};
 
-// TODO: RuleQuote
 struct RuleQuote: pegtl::string<'"'>
 {};
 
 struct RuleQuotedString: pegtl::if_must<RuleQuote, pegtl::until<RuleQuote>>
 {};
 
-// TODO: RuleHeaderValue
 struct RuleHeaderValue: pegtl::plus<pegtl::seq<RuleQuotedString, pegtl::star<RuleSpace, RuleQuotedString>>>
 {};
 
@@ -465,7 +477,6 @@ struct Action<Divider>
   };
 };
 
-// TODO: RuleDelimiter
 struct Delimiter: pegtl::any 
 {};
 
@@ -500,8 +511,9 @@ struct Action<BusDelimiter>
 //  Header Section -------------------------------------------------------------------------------- 
 
 
-// Procedure:: RemoveHeaderKey removes the the key in header and returns the value 
-//             e. g.  *SPEF "IEEE 1994" will return "IEEE 1994"
+// Procedure: RemoveHeaderKey removes the the key in header and returns the value 
+//            e.g.  *SPEF "IEEE 1994" will return "IEEE 1994" (quoted)
+//            e.g.  *DESIGN "simple"  will return "simple"    (quoted)
 template <typename Input>
 inline std::string RemoveHeaderKey(const Input&in, size_t offset){
   auto beg = in.begin() + offset;
@@ -520,7 +532,6 @@ struct Action<RuleStandard>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
-    // TODO: make the following search an utility
     d.standard = RemoveHeaderKey(in, sizeof("*SPEF"));
   };
 };
@@ -599,22 +610,24 @@ struct Action<RuleDesignFlow>
   };
 };
 
-struct RuleDivider: pegtl::seq<TAO_PEGTL_STRING("*DIVIDER"), pegtl::opt<RuleSpace, Divider>>
+struct RuleDivider : 
+  pegtl::seq<TAO_PEGTL_STRING("*DIVIDER"), pegtl::opt<RuleSpace, Divider>>
 {};
 
-struct RuleDelimiter: pegtl::seq<TAO_PEGTL_STRING("*DELIMITER"), pegtl::opt<RuleSpace, Delimiter>>
+struct RuleDelimiter : 
+  pegtl::seq<TAO_PEGTL_STRING("*DELIMITER"), pegtl::opt<RuleSpace, Delimiter>>
 {};
 
-struct RuleBusDelimiter: pegtl::seq<TAO_PEGTL_STRING("*BUS_DELIMITER"), pegtl::opt<RuleSpace, BusDelimiter>>
+struct RuleBusDelimiter : 
+  pegtl::seq<TAO_PEGTL_STRING("*BUS_DELIMITER"), pegtl::opt<RuleSpace, BusDelimiter>>
 {};
 
-
-struct RuleUnit: pegtl::seq<TAO_PEGTL_STRING("*"), pegtl::one<'T','C','R','L'>,
+struct RuleUnit : pegtl::seq<TAO_PEGTL_STRING("*"), pegtl::one<'T','C','R','L'>,
   TAO_PEGTL_STRING("_UNIT"), 
   pegtl::must<RuleSpace, double_::rule, RuleSpace, RuleToken>
 >
-
 {};
+
 template <>
 struct Action<RuleUnit>  
 {
@@ -630,7 +643,6 @@ struct Action<RuleUnit>
     return true;
   }
 };
-
 
 //  Name Map Section -------------------------------------------------------------------------------
 struct RuleNameMapBeg: pegtl::seq<TAO_PEGTL_STRING("*NAME_MAP"), RuleDontCare>
@@ -648,6 +660,7 @@ struct RuleNameMap: pegtl::seq<
   TAO_PEGTL_STRING("*"), pegtl::must<RuleToken, RuleSpace, RuleToken>
 >
 {};
+
 template <>
 struct Action<RuleNameMap>  
 {
@@ -657,11 +670,8 @@ struct Action<RuleNameMap>
     split_on_space(in.begin(), in.end(), d._tokens); 
     size_t key = ::strtoul(&d._tokens[0][1], nullptr, 10);
     d.name_map.try_emplace(key, std::string{d._tokens[1]});
-    //d.name_map.try_emplace(std::string{d._tokens[0]}, std::string{d._tokens[1]});
   }
 };
-
-
 
 //  Port Section ----------------------------------------------------------------------------------
 
@@ -675,7 +685,6 @@ struct Action<RulePortBeg>
   static void apply(const Input& in, Spef& d){}
 };
 
-// TODO: Ignore C/L/S for now
 struct RulePort: pegtl::seq<
   pegtl::not_at<TAO_PEGTL_STRING("*D_NET")>, TAO_PEGTL_STRING("*"),
   pegtl::must<
@@ -721,7 +730,8 @@ struct Action<RulePort>
         break;
     }
 
-    // TODO: Ignore the values after port direction (keep for future use)
+    // TODO:  
+    // right now we ignore the values after port direction (future work)
 
     //// Set up type 
     //if(d._tokens.size() > 2){
@@ -763,7 +773,6 @@ struct RuleConn: pegtl::seq<
     pegtl::seq<RuleSpace, pegtl::seq<TAO_PEGTL_STRING("*L"), RuleSpace, double_::rule>>,
 
     pegtl::seq<RuleSpace, pegtl::seq<TAO_PEGTL_STRING("*D"), RuleSpace, RuleToken>>
-      //pegtl::plus<pegtl::identifier_other>>>
     >
   >
 >
@@ -808,7 +817,6 @@ struct Action<RuleConn>
         i += 1;
       }
       else{
-        // TODO: remove cout (check the entire file...)
         throw pegtl::parse_error("Unrecognized token in CONN section", in);
       }
     }
@@ -994,13 +1002,13 @@ const std::string Control<T>::error_message =
 // API for parsing --------------------------------------------------------------------------------
 
 
-// TODO: mutiplie definitions...
 // Procedure:: file_to_memory reads the content of a file to a string buffer
 inline std::string file_to_memory(const std::experimental::filesystem::path &p){
+
   if(not std::experimental::filesystem::exists(p)){
-    std::cerr << "The provided path does not exist!\n";
     return "";
   }
+
   std::ifstream ifs(p);
 
   ifs.seekg(0, std::ios::end);
@@ -1012,8 +1020,11 @@ inline std::string file_to_memory(const std::experimental::filesystem::path &p){
   return buffer;
 }
 
+// Function: read
 inline bool Spef::read(const std::experimental::filesystem::path &p){
+
   auto buffer {file_to_memory(p)};
+
   if(buffer.empty()){
     return false;
   }
@@ -1031,7 +1042,7 @@ inline bool Spef::read(const std::experimental::filesystem::path &p){
     }
   }
 
-  // Use Lazy mode to improve performane
+  // Use Lazy mode to avoid performance hit!!! (very important...)
   tao::pegtl::memory_input<pegtl::tracking_mode::LAZY> in(buffer, "");
 
   try{
@@ -1039,18 +1050,16 @@ inline bool Spef::read(const std::experimental::filesystem::path &p){
     return true;
   }
   catch(const tao::pegtl::parse_error& e){
-    // TODO: use cerr instead of cout ...
-    std::cerr << e.what() << '\n';
-    const auto p = e.positions.front();
-    std::cerr << "Fail at line " << p.line << ":\n";
-    std::cerr << "  " << in.line_as_string(p) << '\n';
-    std::cerr << "  " << std::string(p.byte_in_line, ' ') << "^" << '\n';
+    const auto& p = e.positions.front();
+    error = Error{in.line_as_string(p), p.line, p.byte_in_line};
     return false;
   }
 }
 
+
+
 // Procedure: replace the keys in str by the values in the mapping
-inline void string_expansion(std::string& str, 
+inline void expand_string(std::string& str, 
   const std::unordered_map<size_t, std::string>& mapping){
   if(str.empty() or mapping.empty()) return ;
   size_t beg {str.size()};
@@ -1098,7 +1107,7 @@ inline void Spef::expand_name(Port& port){
   //    _name_map.emplace(key, v);
   //  }
   //} 
-  string_expansion(port.name, name_map);
+  expand_string(port.name, name_map);
 }
 
 // Procedure: expand the mapping in a net, including the net name, pin names in each section
@@ -1111,20 +1120,20 @@ inline void Spef::expand_name(Net& net){
   //  }
   //}
 
-  string_expansion(net.name, name_map);
+  expand_string(net.name, name_map);
   for(auto &c : net.connections){
-    string_expansion(c.name, name_map);
-    string_expansion(c.driving_cell, name_map);
+    expand_string(c.name, name_map);
+    expand_string(c.driving_cell, name_map);
   }
 
   for(auto &t: net.caps){
-    string_expansion(std::get<0>(t), name_map);
-    string_expansion(std::get<1>(t), name_map);
+    expand_string(std::get<0>(t), name_map);
+    expand_string(std::get<1>(t), name_map);
   }
 
   for(auto &r: net.ress){
-    string_expansion(std::get<0>(r), name_map);
-    string_expansion(std::get<1>(r), name_map);
+    expand_string(std::get<0>(r), name_map);
+    expand_string(std::get<1>(r), name_map);
   }
 }
 
