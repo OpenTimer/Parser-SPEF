@@ -156,7 +156,6 @@ The folder [example] contains a [simple.cpp] that parses a given SPEF file and d
 
 | Benchmark | number of nets (**D\_NET**) | Real | User | Sys |
 | --------- |:--------------: |:-----| :----| :--- |
-
 ac97\_ctrl.spef       | 14407|	0:00.15 |	0.13 |	0.02 
 aes\_core.spef        | 23199|	0:00.32 |	0.30 |	0.01 
 c1355.spef           | 221|	0:00.00 |	0.00 |	0.00 
