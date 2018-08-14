@@ -429,7 +429,7 @@ TEST_CASE("NameMap"){
   const size_t len {30};
   const size_t name_map_num {100};
   const size_t run {10000};
-  std::unordered_map<std::string, std::string> name_map;
+  std::unordered_map<size_t, std::string> name_map;
 
   for(size_t j=0; j<run; j++){
     name_map.clear();
@@ -438,12 +438,11 @@ TEST_CASE("NameMap"){
     buffer.append(dontcare());
 
     for(size_t i=0; i<name_map_num; ++i){
-      name_map.insert({rand_str(rand()%len + 1).insert(0, 1, '*'), rand_str(rand()%len+1)});
+      name_map.insert({(rand()%1000+1), rand_str(rand()%len+1)});
     }
 
     for(const auto& [k, v]: name_map){
-      buffer.append(k).append(space())
-        .append(v).append(dontcare());
+      buffer.append("*"+std::to_string(k)).append(space()).append(v).append(dontcare());
     }
 
     parse(data, buffer);
@@ -524,7 +523,7 @@ TEST_CASE("Net"){
 TEST_CASE("NAME_EXPANSION"){
   srand(123);
 
-  std::unordered_map<size_t, std::string_view> mapping = {
+  std::unordered_map<size_t, std::string> mapping = {
     {1,    "a"},
     {23,   "bc"},
     {456,  "def"},
