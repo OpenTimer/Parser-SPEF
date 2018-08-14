@@ -178,10 +178,10 @@ on a 3.2 GHz 24 GB Ubuntu Machine using one thread.
 
 | Benchmark | Number of Nets (D_NET) | File Size | Parser-SPEF | Handcrafted |
 | --------- |:---------------------: | :-------: | :---------: | :---------: |
-| netcard_iccad | ? | ? | 19.11 s | ? |
-| leon2_iccad | ? | ? | 21.51 s | ? |
-| leon3mp_iccad | ? | ? | 16.90 | ? |
-| vga_lcd | ? | ? | 1.50 | ? |
+| netcard_iccad | 1498555 | 1.2G | 19.11 s | 21.48 |
+| leon2_iccad | 1616984 | 1.4 G | 21.51 s | 24.23 |
+| leon3mp_iccad | 1247979 | 1.1G | 16.90 | 14.71 |
+| vga_lcd | 139632 | 95M | 1.50 | 1.37 |
 
 
 # License
