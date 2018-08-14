@@ -75,7 +75,7 @@ The parser is a `struct Spef` that has following member data:
 | ports                  | `std::vector<Port>` | the set of ports in ***PORTS** section. `Port` is a `struct` |
 | nets                   | `std::vector<Net> nets`| the set of nets in ***D\_NET** section. `Net` is a `struct`  |
 
-The `struct Spef` has following public member APIs:
+The `struct Spef` has following member APIs:
 
 | Name | Argument | Return | Description |
 | ------ |:------------------| :-------------- | :-------------- |
@@ -88,7 +88,7 @@ The `struct Spef` has following public member APIs:
 
 
 ## Struct Port
-The `struct Port` stores the information regarding a port in ***PORTS** section. `struct Port` has following public member
+The `struct Port` stores the information regarding a port in ***PORTS** section. `struct Port` has following member
 data:
 
 | Name | Type | Description |
@@ -98,7 +98,7 @@ data:
 
 
 ## Struct Net
-The `struct Net` stores the information regarding a net in ***D\_NET** section. `struct Net` has following public member
+The `struct Net` stores the information regarding a net in ***D\_NET** section. `struct Net` has following member
 data:
 
 | Name | Type | Description |
