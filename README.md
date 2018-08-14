@@ -7,27 +7,27 @@ A Fast C++ Header-only Parser for Standard Parasitic Exchange Format (SPEF).
 A [Standard Parasitic Exchange Format] (SPEF) file records the parasitics of nets in a
 circuit.
 
-<img src="image/circuit.png" width="45%" align="right"> 
+<img src="image/circuit.png" width="37%" align="right"> 
 
 ```text
 // A RC network of 5 capacitors and 5 resistors
-*D_NET Net1 total_cap
-*CONN 
-*I Z O
-*I T1 I
-*I T2 I
-*CAP
-1 1 C1
-2 2 C2
-3 3 C3
-4 T1 C4
-5 T2 C5 
-*RES 
-1 Z 3 RA
-2 3 2 RB
-3 1 3 RC
-4 1 T1 RD
-5 2 T2 RE
+*D_NET Net1 total_cap  // total_cap = C1+C2+C3+C4+C5
+*CONN          // Begin of CONN section
+*I Z O         // Output Pin Z 
+*I T1 I        // Input Pin T1
+*I T2 I        // Input Pin T2
+*CAP           // Begin of CAP section
+1 P1 C1        // Node P1 with cap C1
+2 P2 C2        // Node P2 with cap C2
+3 P3 C3        // Node P3 with cap C3
+4 T1 C4        // Node T1 with cap C4
+5 T2 C5        // Node T2 with cap C5
+*RES           // Begin of RES section
+1 Z P3 R1      // Res R1 with nodes Z and P3
+2 P2 P3 R2     // Res R2 with nodes P2 and P3
+3 P1 P3 R3     // Res R3 with nodes P1 and P3
+4 P1 T1 R4     // Res R4 with nodes P1 and T1
+5 P2 T2 R5     // Res R5 with nodes P2 and T2
 *END
 ```
 
@@ -42,13 +42,15 @@ int main(){
     std::cout << parser.dump() << '\n';  // dump the spef
   }
 }
-```
-After the parse succeeds, you can retrieve the parsed data stored in the parser. To compile this example, put
-the code in `example.cpp` and type the command:
+``` 
+To compile this example, put the code in `example.cpp` and type the command:
 
 ```cpp
 g++ -std=c++17 -I Parser-SPEF/ example.cpp -lstc++fs -o example
 ```
+
+After the parse succeeds, you can retrieve the parsed data stored in the parser by accessing
+the member data in `struct Spef`.
 
 ## Struct Spef 
 The parser is a `struct Spef` that has following member data:
