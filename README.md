@@ -4,7 +4,7 @@ A Fast C++ Header-only Parser for Standard Parasitic Exchange Format (SPEF).
 
 # Get Started with Parser-SPEF
 
-A [Standard Parasitic Exchange Format] (SPEF) file records the parasitics of nets in a
+A [Standard Parasitic Exchange Format][SPEF] file records the parasitics of nets in a
 circuit.
 
 <img src="image/circuit.png" width="37%" align="right"> 
@@ -12,101 +12,111 @@ circuit.
 ```text
 // A RC network of 5 capacitors and 5 resistors
 *D_NET Net1 total_cap  // total_cap = C1+C2+C3+C4+C5
-*CONN          // Begin of CONN section
-*I Z O         // Output Pin Z 
-*I T1 I        // Input Pin T1
-*I T2 I        // Input Pin T2
-*CAP           // Begin of CAP section
-1 P1 C1        // Node P1 with cap C1
-2 P2 C2        // Node P2 with cap C2
-3 P3 C3        // Node P3 with cap C3
-4 T1 C4        // Node T1 with cap C4
-5 T2 C5        // Node T2 with cap C5
-*RES           // Begin of RES section
-1 Z P3 R1      // Res R1 with nodes Z and P3
-2 P2 P3 R2     // Res R2 with nodes P2 and P3
-3 P1 P3 R3     // Res R3 with nodes P1 and P3
-4 P1 T1 R4     // Res R4 with nodes P1 and T1
-5 P2 T2 R5     // Res R5 with nodes P2 and T2
-*END
+*CONN                  // Begin of CONN section
+*I Z O                 // Output Pin Z 
+*I T1 I                // Input Pin T1
+*I T2 I                // Input Pin T2
+*CAP                   // Begin of CAP section
+1 P1 C1                // Node P1 with cap C1
+2 P2 C2                // Node P2 with cap C2
+3 P3 C3                // Node P3 with cap C3
+4 T1 C4                // Node T1 with cap C4
+5 T2 C5                // Node T2 with cap C5
+*RES                   // Begin of RES section
+1 Z P3 R1              // Res R1 with nodes Z and P3
+2 P2 P3 R2             // Res R2 with nodes P2 and P3
+3 P1 P3 R3             // Res R3 with nodes P1 and P3
+4 P1 T1 R4             // Res R4 with nodes P1 and T1
+5 P2 T2 R5             // Res R5 with nodes P2 and T2
+*END                   // End of NET section
 ```
 
-The following example shows how to use Parser-SPEF to read a SPEF file:
+The following [example.cpp](doc/example.cpp) shows how to read and parse a SPEF:
 
 ```cpp
-#include "Parser-SPEF/parser-spef.hpp"   // the only include you need
+#include <parser-spef.hpp>   // Parser-SPEF is header-only
 
 int main(){
   spef::Spef parser;                     // create a parser object
-  if(parser.read("simple.spef")){        // parse a .spef
-    std::cout << parser.dump() << '\n';  // dump the spef
+  if(parser.read("myspef.spef")){        // parse a .spef
+    std::cout << parser.dump() << '\n';  // dump the parsed spef
   }
+  else {
+    std::cerr << *parser.error;          // show the error message
+  }
+  return 0;
 }
 ``` 
-To compile this example, put the code in `example.cpp` and type the command:
 
-```cpp
-g++ -std=c++17 -I Parser-SPEF/ example.cpp -lstc++fs -o example
+You only need a C++ compiler with C++17 support to compile Parser-SPEF.
+
+```bash
+~$ g++ -std=c++17 -I Parser-SPEF/ example.cpp -lstc++fs -o example
 ```
 
-After the parse succeeds, you can retrieve the parsed data stored in the parser by accessing
-the member data in `struct Spef`.
+# Use Parser-SPEF
+
+Parser-SPEF is extremely easy to use and understand. Once the parser succeeds, you can retrieve
+pretty much all required data in the structs `Spef`, `Port`, and `Net` - defined
+in [parser-spef.hpp](./parser-spef.hpp).
 
 ## Struct Spef 
-The parser is a `struct Spef` that has following member data:
+
+The parser object is a struct of type `Spef` which store SPEF data 
+when the parsing process succeds.
 
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
-| standard               | `std::string` | the string after the header `*SPEF`            |
-| design\_name           | `std::string` | the string after the header `*DESIGN`          |
-| date                   | `std::string` | the string after the header `*DATE`            |
-| vendor                 | `std::string` | the string after the header `*VENDOR`          |
-| program                | `std::string` | the string after the header `*PROGRAM`         |
-| version                | `std::string` | the string after the header `*VERSION`         |
-| design\_flow           | `std::string` | the string after the header `*DESIGN_FLOW`     |
-| divider                | `std::string` | the string after the header `*DIVIDER`         |
-| delimiter              | `std::string` | the string after the header `*DELIMITER`       |
-| bus\_delimiter         | `std::string` | the string after the header `*BUS_DELIMITER`   | 
-| time\_unit             | `std::string` | the string after the header `*T_UNIT`          |
-| capacitance\_unit      | `std::string` | the string after the header `*C_UNIT`          |
-| resistance\_unit       | `std::string` | the string after the header `*R_UNIT`          |
-| inductance\_unit       | `std::string` | the string after the header `*L_UNIT`          |
-| name\_map              | `std::unordered_map<std::string, std::string>` |  the name mapping (a number with an asterisk prefix and the mapped name) in ***NAME\_MAP** section  |
-| ports                  | `std::vector<Port>` | the set of ports in ***PORTS** section. `Port` is a `struct` |
-| nets                   | `std::vector<Net> nets`| the set of nets in ***D\_NET** section. `Net` is a `struct`  |
+| standard               | std::string | the string after the header `*SPEF`            |
+| design_name           | std::string | the string after the header `*DESIGN`          |
+| date                   | std::string | the string after the header `*DATE`            |
+| vendor                 | std::string | the string after the header `*VENDOR`          |
+| program                | std::string | the string after the header `*PROGRAM`         |
+| version                | std::string | the string after the header `*VERSION`         |
+| design_flow           | std::string | the string after the header `*DESIGN_FLOW`     |
+| divider                | std::string | the string after the header `*DIVIDER`         |
+| delimiter              | std::string | the string after the header `*DELIMITER`       |
+| bus_delimiter         | std::string | the string after the header `*BUS_DELIMITER`   | 
+| time_unit             | std::string | the string after the header `*T_UNIT`          |
+| capacitance_unit      | std::string | the string after the header `*C_UNIT`          |
+| resistance_unit       | std::string | the string after the header `*R_UNIT`          |
+| inductance_unit       | std::string | the string after the header `*L_UNIT`          |
+| name_map              | std::unordered_map<size_t, std::string> |  the name mapping (a number with an asterisk prefix and the mapped name) in *NAME_MAP* section  |
+| ports                  | std::vector of Port | the ports in *PORTS* section. |
+| nets                   | std::vector of Net  | the set of nets in *D_NET* section. |
 
-The `struct Spef` has following member APIs:
+The parser struct has the following member functions:
 
 | Name | Argument | Return | Description |
-| ------ |:------------------| :-------------- | :-------------- |
-| read  | path | bool | parse the file pointed by the path and return `true` if the parser succeeds |
-| dump  | n/a  | `std::string` |  dump the member data to a `std::string` of SPEF format |
+| ----- |:------------------| :-------------- | :-------------- |
+| read  | path | bool | parse a given file and return true upon success or false on failure |
+| dump  | n/a  | std::string |  dump the content to a SPEF |
 | clear | n/a  | n/a | clear the content of all member data |
-| name\_expansion | n/a | n/a | expand the mapped names in all ports and nets |
-| name\_expansion | `Net` | n/a | expand the mapped names in a given net |
-| name\_expansion | `Port` | n/a | expand the mapped names in a given port |
+| expand_name | n/a | n/a | expand the mapped names in all ports and nets |
+| expand_name | Net | n/a | expand the mapped names in a given net |
+| expand_name | Port | n/a | expand the mapped names in a given port |
 
 
 ## Struct Port
-The `struct Port` stores the information regarding a port in ***PORTS** section. `struct Port` has following member
-data:
+
+The struct `Port` stores the information of a port in **PORTS** section. 
 
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
-| name   | `std::string` | the name of the port   |
+| name   | std::string | the name of the port   |
 | ConnectionDirection   | `enum class` | the direction of the port. The value could be either INPUT, OUTPUT or INOUT.   |
 
 
 ## Struct Net
-The `struct Net` stores the information regarding a net in ***D\_NET** section. `struct Net` has following member
-data:
+
+The struct `Net` stores the information regarding a net in **D_NET** section. 
 
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
-| name   | `std::string` | the name of the net  |
-| connections   | `std::vector<Connection>` | the connections in the ***CONN** section  |
-| caps   | `std::vector<std::tuple<std::string, std::string, float>>` | the capacitances in the ***CAP** section  |
-| ress   | `std::vector<std::tuple<std::string, std::string, float>>` | the resistances in the ***RES** section  |
+| name   | std::string | the name of the net  |
+| connections   | std::vector<Connection> | the connections in the **CONN** section  |
+| caps   | std::vector<std::tuple<std::string, std::string, float>> | the capacitances in the **CAP** section  |
+| ress   | std::vector<std::tuple<std::string, std::string, float>> | the resistances in the **RES** section  |
 
 
 
@@ -221,16 +231,16 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 * * *
 
-[Tsung-Wei Huang]:       http://web.engr.illinois.edu/~thuang19/
-[Chun-Xun Lin]:          https://github.com/clin99
-[Martin Wong]:           https://ece.illinois.edu/directory/profile/mdfwong
-[PEG]:                   https://en.wikipedia.org/wiki/Parsing_expression_grammar 
-[Standard Parasitic Exchange Format]: https://en.wikipedia.org/wiki/Standard_Parasitic_Exchange_Format 
-[example]:               https://github.com/OpenTimer/Parser-SPEF/tree/master/example
-[benchmark]:             https://github.com/OpenTimer/Parser-SPEF/tree/master/benchmark  
-[unittest]:              https://github.com/OpenTimer/Parser-SPEF/tree/master/unittest
-[TAU 2014]:      https://sites.google.com/site/taucontest2014/home
-[TAU 2015]:      http://www.tauworkshop.com/2015/contest.html
-[TAU 2016]:      https://sites.google.com/site/taucontest2016/home
-[simple.cpp]:            https://github.com/OpenTimer/Parser-SPEF/tree/master/example/simple.cpp
+[Tsung-Wei Huang]: http://web.engr.illinois.edu/~thuang19/
+[Chun-Xun Lin]:    https://github.com/clin99
+[Martin Wong]:     https://ece.illinois.edu/directory/profile/mdfwong
+[PEG]:             https://en.wikipedia.org/wiki/Parsing_expression_grammar 
+[SPEF]:            https://en.wikipedia.org/wiki/Standard_Parasitic_Exchange_Format 
+[example]:         https://github.com/OpenTimer/Parser-SPEF/tree/master/example
+[benchmark]:       https://github.com/OpenTimer/Parser-SPEF/tree/master/benchmark  
+[unittest]:        https://github.com/OpenTimer/Parser-SPEF/tree/master/unittest
+[TAU 2014]:        https://sites.google.com/site/taucontest2014/home
+[TAU 2015]:        http://www.tauworkshop.com/2015/contest.html
+[TAU 2016]:        https://sites.google.com/site/taucontest2016/home
+[simple.cpp]:      https://github.com/OpenTimer/Parser-SPEF/tree/master/example/simple.cpp
 
