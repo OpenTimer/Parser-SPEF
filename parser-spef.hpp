@@ -95,21 +95,19 @@ struct Spef {
   std::string dump() const;
   void clear();
 
-  template <typename T>
-  friend struct Action;
-  
   bool read(const std::experimental::filesystem::path &);
 
-  // TODO: 
   void expand_name();              // Expand everything
   void expand_name(Net&);
   void expand_name(Port&);
+
+  template <typename T>
+  friend struct Action;
 
   private:
   
     Net* _current_net {nullptr};
     std::vector<std::string_view> _tokens;
-    std::unordered_map<size_t, std::string_view> _name_map;
 };
 
 
@@ -219,9 +217,6 @@ inline std::ostream& operator<<(std::ostream& os, const Port& p)
   //}
   return os;  
 }  
-
-
-
 
 
 inline bool operator == (const Connection& lhs, const Connection& rhs) {
@@ -382,7 +377,7 @@ inline void Spef::clear(){
   nets.clear();
 }
 
-
+// Procedure: dump the Spef to a string in SPEF format
 inline std::string Spef::dump() const {
   std::ostringstream os;
   os 
@@ -433,6 +428,9 @@ using RuleToken = pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'
 using RuleDontCare = pegtl::star<pegtl::space>;
 using RuleSpace = pegtl::plus<pegtl::space>;
 
+// The double_::rule does not check successive characters after digits. For example: 
+// 1.243abc still satisfies the double_::rule. This RuleDouble enforce the successive 
+// characters should be either a space or *
 struct RuleDouble : pegtl::seq<double_::rule, pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>>>>
 {};
 
@@ -502,6 +500,8 @@ struct Action<BusDelimiter>
 //  Header Section -------------------------------------------------------------------------------- 
 
 
+// Procedure:: RemoveHeaderKey removes the the key in header and returns the value 
+//             e. g.  *SPEF "IEEE 1994" will return "IEEE 1994"
 template <typename Input>
 inline std::string RemoveHeaderKey(const Input&in, size_t offset){
   auto beg = in.begin() + offset;
@@ -721,7 +721,7 @@ struct Action<RulePort>
         break;
     }
 
-    // TODO: (in the future)
+    // TODO: Ignore the values after port direction (keep for future use)
 
     //// Set up type 
     //if(d._tokens.size() > 2){
@@ -738,7 +738,7 @@ struct Action<RulePort>
 
 //  Net Section -----------------------------------------------------------------------------------
 
-// RuleVar represents a token to not stop at '*'
+// RuleVar represents a token to not stop at '*' as name mapping will use * in token.
 using RuleVar = pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::eof>>>;
 
 struct RuleConnBeg: pegtl::seq<TAO_PEGTL_STRING("*CONN")>
@@ -995,6 +995,7 @@ const std::string Control<T>::error_message =
 
 
 // TODO: mutiplie definitions...
+// Procedure:: file_to_memory reads the content of a file to a string buffer
 inline std::string file_to_memory(const std::experimental::filesystem::path &p){
   if(not std::experimental::filesystem::exists(p)){
     std::cerr << "The provided path does not exist!\n";
@@ -1048,6 +1049,7 @@ inline bool Spef::read(const std::experimental::filesystem::path &p){
   }
 }
 
+// Procedure: replace the keys in str by the values in the mapping
 inline void string_expansion(std::string& str, 
   const std::unordered_map<size_t, std::string>& mapping){
   if(str.empty() or mapping.empty()) return ;
@@ -1076,7 +1078,7 @@ inline void string_expansion(std::string& str,
   }
 }
 
-
+// Procedure: expand all mappings in the SPEF file
 inline void Spef::expand_name(){
   for(auto &p: ports){
     expand_name(p);
@@ -1086,6 +1088,8 @@ inline void Spef::expand_name(){
   }
 }
 
+
+// Procedure: expand the mapping in port name
 inline void Spef::expand_name(Port& port){
   //if(_name_map.empty()){
   //  size_t key;
@@ -1097,7 +1101,7 @@ inline void Spef::expand_name(Port& port){
   string_expansion(port.name, name_map);
 }
 
-
+// Procedure: expand the mapping in a net, including the net name, pin names in each section
 inline void Spef::expand_name(Net& net){
   //if(_name_map.empty()){
   //  size_t key;
