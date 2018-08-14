@@ -57,7 +57,7 @@ You only need a C++ compiler with C++17 support to compile Parser-SPEF.
 # Use Parser-SPEF
 
 Parser-SPEF is extremely easy to use and understand. Once the parser succeeds, you can retrieve
-pretty much all required data in the structs `Spef`, `Port`, and `Net` - defined
+pretty much all required data in the structs `Spef`, `Port`, and `Net`, which are defined
 in [parser-spef.hpp](./parser-spef.hpp).
 
 ## Struct Spef 
@@ -120,18 +120,21 @@ The struct `Net` stores the information regarding a net in **D_NET** section.
 
 
 
-# Compile Parser-SPEF
+# Compile Tests
+
+Parser-SPEF is written in modern C++17 on top of a header-only Parsing Expression Grammar (PEG)
+library [PEGTL][PEGTL]. 
 
 ## System Requirements 
-Parser-SPEF is very self-contained and only requires [PEGTL](https://github.com/taocpp/PEGTL) 
-library. 
-To compile Parser-SPEF, you only need a C++17 compiler:
+
+To compile the unit tests, you only need a C++17 compiler:
 + GNU [C++ Compiler G++ v7.2](https://gcc.gnu.org/gcc-7/) (or higher) with C++17 support 
 + Clang 5.0 [C++ Compiler](https://clang.llvm.org/) (or higher) with C++17 support 
 
-Currently Parser-SPEF has been tested to run well on Linux distributions. 
+Currently Parser-SPEF has been tested to run well on Linux distributions and MAC OSX.
 
-## Compile Whole Project
+## Build through CMake
+
 We use [CMake](https://cmake.org/) to manage the source and tests. 
 We recommend using out-of-source build.
 
@@ -140,76 +143,45 @@ We recommend using out-of-source build.
 ~$ cd Parser-SPEF
 ~$ mkdir build
 ~$ cd build
-~$ cmake ../ -DCMAKE_CXX_COMPILER=g++
+~$ cmake ../
 ~$ make 
 ```
 
-After successful build, you can find the binaries for both examples and unit tests in the 
-folder `example` and `unittest`, respectively.
+After successful build, example and unittest binaries are placed in
+the folder [example](./example) and [unittest](./unittest), respectively.
 
 ## Run Tests
-Parser-SPEF uses [Doctest](https://github.com/onqtam/doctest) for unit tests. After successful build, 
-to run the unit tests:
+
+Parser-SPEF uses [Doctest](https://github.com/onqtam/doctest) for unit tests. We have added all
+unittests to the CMake and you can use the target `test` to run all tests.
+
 ```bash
 ~$ make test
 ```
 
 ## Examples
-The folder [example] contains a [simple.cpp] that parses a given SPEF file and dumps to screen. The folder [benchmark] contains SPEF files from [TAU 2014], [TAU 2015] and [TAU 2016] contests and can be supplied as inputs to the [simple.cpp].
+
+The folder [example](./example) contains several tutorial examples to demonstrate the usage of Parser-SPEF.
 
 | Example | Description | How to Run ? |
 | ------------- |:-------------| :--------------|
-| [simple.cpp] | Read a SPEF file and dump the parsed data to screen | ./simple [path to the SPEF file]  |
+| [simple.cpp] | Read a SPEF file and dump the parsed data to screen | ./simple [file]  |
 
 
-## Performance Profiling
-We profile the parser performance on a 3.2 GHz machine with 4 cores (only single thread is used) and 24 GB memory. The table summarizes the results:
+# Performance
 
-| Benchmark | Number of nets (**D\_NET**) | Real (second) | User (second) | Sys (second) |
-| --------- |:--------------: |:-----| :----| :--- |
-ac97\_ctrl.spef       | 14407|	0:00.15 |	0.13 |	0.02 
-aes\_core.spef        | 23199|	0:00.32 |	0.30 |	0.01 
-c1355.spef           | 221|	0:00.00 |	0.00 |	0.00 
-c17\_slack.spef       | 11|	0:00.00 |	0.00 |	0.00 
-c17.spef             | 11|	0:00.00 |	0.00 |	0.00 
-c1908.spef           | 255|	0:00.00 |	0.00 |	0.00 
-c2670.spef           | 501|	0:00.00 |	0.00 |	0.00 
-c3540.spef           | 741|	0:00.01 |	0.00 |	0.00 
-c3\_slack.spef        | 7|	0:00.00 |	0.00 |	0.00 
-c432.spef            | 170|	0:00.00 |	0.00 |	0.00 
-c499.spef            | 217|	0:00.00 |	0.00 |	0.00 
-c5315.spef           | 1096|	0:00.01 |	0.01 |	0.00 
-c6288.spef           | 1699|	0:00.01 |	0.01 |	0.00 
-c7552\_slack.spef     | 1353|	0:00.01 |	0.01 |	0.00 
-c7552.spef           | 1353|	0:00.01 |	0.01 |	0.00 
-c880.spef            | 281|	0:00.00 |	0.00 |	0.00 
-des\_perf.spef        | 106532|	0:01.27 |	1.20 |	0.07 
-fft\_ispd.spef        | 39184|	0:00.50 |	0.47 |	0.02 
-pci\_bridge32.spef    | 19272|	0:00.22 |	0.20 |	0.01 
-s1196.spef           | 657|	0:00.00 |	0.00 |	0.00 
-s1494.spef           | 814|	0:00.01 |	0.00 |	0.00 
-s27.spef             | 34|	0:00.00 |	0.00 |	0.00 
-s344.spef            | 193|	0:00.00 |	0.00 |	0.00 
-s349.spef            | 205|	0:00.00 |	0.00 |	0.00 
-s386.spef            | 186|	0:00.00 |	0.00 |	0.00 
-s400.spef            | 226|	0:00.00 |	0.00 |	0.00 
-s510.spef            | 312|	0:00.00 |	0.00 |	0.00 
-s526.spef            | 309|	0:00.00 |	0.00 |	0.00 
-simple.spef          | 6|	0:00.00 |	0.00 |	0.00 
-systemcaes.spef      | 6790|	0:00.10 |	0.08 |	0.01 
-systemcdes.spef      | 3588|	0:00.04 |	0.04 |	0.00 
-tv80.spef            | 5317|	0:00.07 |	0.07 |	0.00 
-usb\_funct.spef       | 15897|	0:00.19 |	0.19 |	0.00 
-vga\_lcd.spef         | 139632|	0:01.50 |	1.43 |	0.06 
-wb\_dma.spef          | 4418|	0:00.05 |	0.05 |	0.00 
+Parser-SPEF is as fast as a handcrafted (highly optimized) SPEF parser but far more general and 
+adaptive in new changes.
+We have evaluated Parser-SPEF over a handcrafted implementation on large 
+[benchmarks](https://sites.google.com/site/taucontest2015/resources)
+on a 3.2 GHz 24 GB Ubuntu Machine using one thread.
 
-
-
-
-
-
-
-
+| Benchmark | Number of Nets (D_NET) | File Size | Parser-SPEF | Handcrafted |
+| --------- |:---------------------: | :-------: | :---------: | :---------: |
+| netcard_iccad | ? | ? | 19.11 s | ? |
+| leon2_iccad | ? | ? | 21.51 s | ? |
+| leon3mp_iccad | ? | ? | 16.90 | ? |
+| vga_lcd | ? | ? | 1.50 | ? |
 
 
 # License
@@ -235,6 +207,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 [Chun-Xun Lin]:    https://github.com/clin99
 [Martin Wong]:     https://ece.illinois.edu/directory/profile/mdfwong
 [PEG]:             https://en.wikipedia.org/wiki/Parsing_expression_grammar 
+[PEGTL]:           https://github.com/taocpp/PEGTL
 [SPEF]:            https://en.wikipedia.org/wiki/Standard_Parasitic_Exchange_Format 
 [example]:         https://github.com/OpenTimer/Parser-SPEF/tree/master/example
 [benchmark]:       https://github.com/OpenTimer/Parser-SPEF/tree/master/benchmark  
