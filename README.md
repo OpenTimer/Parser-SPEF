@@ -63,8 +63,8 @@ in [parser-spef.hpp](./parser-spef.hpp).
 
 ## Struct Spef 
 
-The parser object is a struct of type `Spef` which store SPEF data 
-when the parsing process succeds.
+The parser object is a struct of type `Spef` which stores SPEF data 
+when the parsing process succeeds.
 
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
