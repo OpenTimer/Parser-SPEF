@@ -24,20 +24,23 @@ namespace spef{
 // Parser-SPEF stores the data to the folloing data structures.
 // ------------------------------------------------------------------------------------------------
 
-// TODO:
+// ConnectionType: 
+//   EXTERNAL: connection to a external port (*P)
+//   INTERNAL: connection to a cell instance (*I)
 enum class ConnectionType {
   INTERNAL,
   EXTERNAL
 };
 
-// TODO:
+// ConnectionDirection:
+//   the direction of pin, either in, out or bidirectional.
 enum class ConnectionDirection {
   INPUT,
   OUTPUT,
   INOUT
 };
 
-// TODO:
+// Port: the port in *PORTS section
 struct Port {
   Port() = default;
   Port(const std::string& s): name(s) {}
@@ -45,7 +48,7 @@ struct Port {
   ConnectionDirection direction;  // I, O, B 
 };
 
-// TODO:
+// Connection: the *CONN section in *D_NET
 struct Connection {
 
   std::string name;
@@ -59,7 +62,7 @@ struct Connection {
   Connection() = default;
 };
 
-// TODO:
+// Net: the data in a *D_NET section
 struct Net {
   std::string name;
   float lcap;
@@ -71,7 +74,8 @@ struct Net {
   Net(const std::string& s, const float f): name{s}, lcap{f} {}
 };
 
-// TODO
+// Spef: the data in a SPEF.
+//   There are four parts: header, name map, ports, nets.
 struct Spef {
 
   struct Error {
