@@ -153,6 +153,7 @@ The folder [example] contains a [simple.cpp] that parses a given SPEF file and d
 
 
 ## Performance Profiling
+We profile the parser performance on a 3.2 GHz machine with 4 cores (only single thread is used) and 24 GB memory. The table summarizes the results:
 
 | Benchmark | Number of nets (**D\_NET**) | Real | User | Sys |
 | --------- |:--------------: |:-----| :----| :--- |
