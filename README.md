@@ -2,15 +2,16 @@
 
 A Fast C++ Header-only Parser for Standard Parasitic Exchange Format (SPEF).
 
-# SPEF format
+# Get Started with Parser-SPEF
 
 A [Standard Parasitic Exchange Format] (SPEF) file records the parasitics of nets in a
-circuit. Below is an example:
+circuit.
 
-<img src="image/circuit.png" width="40%" align="right" style="margin:1000px 0px"> 
+<img src="image/circuit.png" width="45%" align="right"> 
 
 ```text
-*D_NET Net1 C1+C2+C3+C4+C5
+// A RC network of 5 capacitors and 5 resistors
+*D_NET Net1 total_cap
 *CONN 
 *I Z O
 *I T1 I
@@ -30,22 +31,15 @@ circuit. Below is an example:
 *END
 ```
 
-# Get Started with Parser-SPEF
-
 The following example shows how to use Parser-SPEF to read a SPEF file:
 
 ```cpp
 #include "Parser-SPEF/parser-spef.hpp"   // the only include you need
 
 int main(){
-
-  spef::Spef parser;
-
-  if(parser.read("path_to_the_spef_file")){
-
-    // Dump the SPEF file after successful read
-    std::cout << parser.dump() << '\n';
-
+  spef::Spef parser;                     // create a parser object
+  if(parser.read("simple.spef")){        // parse a .spef
+    std::cout << parser.dump() << '\n';  // dump the spef
   }
 }
 ```
@@ -56,8 +50,8 @@ the code in `example.cpp` and type the command:
 g++ -std=c++17 -I Parser-SPEF/ example.cpp -lstc++fs -o example
 ```
 
-### struct Spef 
-The parser is a `struct Spef` that has following public member data:
+## Struct Spef 
+The parser is a `struct Spef` that has following member data:
 
 | Name | Type | Description |
 | ------------- |:-------------| :--------------|
@@ -91,7 +85,7 @@ The `struct Spef` has following public member APIs:
 | name\_expansion | `Port` | n/a | expand the mapped names in a given port |
 
 
-### struct Port
+## Struct Port
 The `struct Port` stores the information regarding a port in ***PORTS** section. `struct Port` has following public member
 data:
 
@@ -101,7 +95,7 @@ data:
 | ConnectionDirection   | `enum class` | the direction of the port. The value could be either INPUT, OUTPUT or INOUT.   |
 
 
-### struct Net
+## Struct Net
 The `struct Net` stores the information regarding a net in ***D\_NET** section. `struct Net` has following public member
 data:
 
@@ -117,7 +111,8 @@ data:
 # Compile Parser-SPEF
 
 ## System Requirements 
-Parser-SPEF is very self-contained and only requires [PEGTL](https://github.com/taocpp/PEGTL) library (included). 
+Parser-SPEF is very self-contained and only requires [PEGTL](https://github.com/taocpp/PEGTL) 
+library. 
 To compile Parser-SPEF, you only need a C++17 compiler:
 + GNU [C++ Compiler G++ v7.2](https://gcc.gnu.org/gcc-7/) (or higher) with C++17 support 
 + Clang 5.0 [C++ Compiler](https://clang.llvm.org/) (or higher) with C++17 support 
