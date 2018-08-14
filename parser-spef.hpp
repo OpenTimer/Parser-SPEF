@@ -35,9 +35,6 @@ struct Port {
   Port(const std::string& s): name(s) {}
   std::string name;
   ConnectionDirection direction;  // I, O, B 
-
-  // TODO: move this to global scope
-  friend std::ostream& operator<<(std::ostream&, const Port&);
 };
 
 struct Connection {
@@ -53,8 +50,8 @@ struct Connection {
   Connection() = default;
 
   // TODO: move operators to global score
-  bool operator ==(const Connection& rhs) const;
-  bool operator !=(const Connection& rhs) const;
+  //bool operator ==(const Connection& rhs) const;
+  //bool operator !=(const Connection& rhs) const;
 };
 
 struct Net {
@@ -68,8 +65,8 @@ struct Net {
   Net(const std::string& s, const float f): name{s}, lcap{f} {}
   
   // TODO: move operators to global scope
-  bool operator ==(const Net& rhs) const;
-  bool operator !=(const Net& rhs) const;
+  //bool operator ==(const Net& rhs) const;
+  //bool operator !=(const Net& rhs) const;
 };
 
 struct Spef {
@@ -90,7 +87,8 @@ struct Spef {
   std::string inductance_unit;
   
   // TODO: use size_t vs std::string
-  std::unordered_map<std::string, std::string> name_map;
+  //std::unordered_map<std::string, std::string> name_map;
+  std::unordered_map<size_t, std::string> name_map;
   std::vector<Port> ports;
   std::vector<Net> nets;
 
@@ -184,7 +182,7 @@ inline void split_on_space(const char* beg, const char* end, std::vector<std::st
 }
 
 // TODO: use inline to avoid multiple definitions
-std::ostream& operator<<(std::ostream& os, const ConnectionType& c)
+inline std::ostream& operator<<(std::ostream& os, const ConnectionType& c)
 {
   switch(c){
     case ConnectionType::INTERNAL: os << "*I"; break;
@@ -194,7 +192,7 @@ std::ostream& operator<<(std::ostream& os, const ConnectionType& c)
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
+inline std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
 {
   switch(c){
     case ConnectionDirection::INPUT  : os << 'I';  break;
@@ -206,7 +204,7 @@ std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
 }
 
 
-std::ostream& operator<<(std::ostream& os, const Port& p)  
+inline std::ostream& operator<<(std::ostream& os, const Port& p)  
 {  
   os << p.name << ' ';
   switch(p.direction){
@@ -224,11 +222,9 @@ std::ostream& operator<<(std::ostream& os, const Port& p)
 
 
 
-inline bool Connection::operator != (const Connection& rhs) const {
-  return not (*this == rhs);
-}
 
-inline bool Connection::operator == (const Connection& rhs) const {
+
+inline bool operator == (const Connection& lhs, const Connection& rhs) {
   auto is_same_float = [](float a, float b){ 
     if(::fabs(a-b) > 1e-3){
       return false;
@@ -236,25 +232,25 @@ inline bool Connection::operator == (const Connection& rhs) const {
     return true;
   };
 
-  if(name != rhs.name or type != rhs.type or direction != rhs.direction or 
-    driving_cell != rhs.driving_cell){
+  if(lhs.name != rhs.name or lhs.type != rhs.type or lhs.direction != rhs.direction or 
+    lhs.driving_cell != rhs.driving_cell){
     return false;
   }
 
-  if(load.has_value() and rhs.load.has_value()){
-    if(not is_same_float(*load, *rhs.load)){
+  if(lhs.load.has_value() and rhs.load.has_value()){
+    if(not is_same_float(*lhs.load, *rhs.load)){
       return false;
     }
   }
   else{
-    if(load != rhs.load){
+    if(lhs.load != rhs.load){
       return false;
     }
   }
  
-  if(coordinate.has_value() and rhs.coordinate.has_value()){
-    auto& x = std::get<0>(*coordinate);
-    auto& y = std::get<1>(*coordinate);
+  if(lhs.coordinate.has_value() and rhs.coordinate.has_value()){
+    auto& x = std::get<0>(*lhs.coordinate);
+    auto& y = std::get<1>(*lhs.coordinate);
     auto& rx = std::get<0>(*rhs.coordinate);
     auto& ry = std::get<1>(*rhs.coordinate);
     if(not is_same_float(x, rx) or not is_same_float(y, ry)){
@@ -262,14 +258,19 @@ inline bool Connection::operator == (const Connection& rhs) const {
     }
   }
   else{
-    if(coordinate != rhs.coordinate){
+    if(lhs.coordinate != rhs.coordinate){
       return false;
     }
   }  
   return true;
 }
 
-std::ostream& operator<<(std::ostream& os, const Connection& c)
+inline bool operator != (const Connection& lhs, const Connection& rhs) {
+  return not (lhs == rhs);
+}
+
+
+inline std::ostream& operator<<(std::ostream& os, const Connection& c)
 {
   os << c.type << ' ' << c.name << ' ' << c.direction;
   if(c.coordinate.has_value()){
@@ -285,18 +286,12 @@ std::ostream& operator<<(std::ostream& os, const Connection& c)
 }
 
 
-
-
-inline bool Net::operator !=(const Net& rhs) const{
-  return not (*this == rhs);
-}
-
-inline bool Net::operator == (const Net& rhs) const {
-  if(name != rhs.name or ::fabs(lcap - rhs.lcap) > 1e-3)
+inline bool operator == (const Net& lhs, const Net& rhs) {
+  if(lhs.name != rhs.name or ::fabs(lhs.lcap - rhs.lcap) > 1e-3)
     return false;
-  if(connections != rhs.connections)
+  if(lhs.connections != rhs.connections)
     return false;
-  if(caps.size() != rhs.caps.size() or ress.size() != rhs.ress.size()){
+  if(lhs.caps.size() != rhs.caps.size() or lhs.ress.size() != rhs.ress.size()){
     return false;
   }
 
@@ -314,14 +309,14 @@ inline bool Net::operator == (const Net& rhs) const {
     return true;
   };
 
-  for(size_t i=0; i<caps.size(); i++){
-    if(not is_same_tuple(caps[i], rhs.caps[i])){
+  for(size_t i=0; i<lhs.caps.size(); i++){
+    if(not is_same_tuple(lhs.caps[i], rhs.caps[i])){
       return false;
     }
   }
 
-  for(size_t i=0; i<ress.size(); i++){
-    if(not is_same_tuple(ress[i], rhs.ress[i])){
+  for(size_t i=0; i<lhs.ress.size(); i++){
+    if(not is_same_tuple(lhs.ress[i], rhs.ress[i])){
       return false;
     }
   }
@@ -329,8 +324,11 @@ inline bool Net::operator == (const Net& rhs) const {
   return true;
 }
 
+inline bool operator !=(const Net& lhs, const Net& rhs) {
+  return not (lhs == rhs);
+}
 
-std::ostream& operator<<(std::ostream& os, const Net& n)
+inline std::ostream& operator<<(std::ostream& os, const Net& n)
 {
   os << "*D_NET " << n.name << ' ' << n.lcap << '\n';
   if(not n.connections.empty()){
@@ -409,7 +407,7 @@ inline std::string Spef::dump() const {
     os << "*NAME_MAP\n";
   }
   for(const auto& [k,v]: name_map){
-    os << k << ' ' << v << '\n';
+    os << '*' << k << ' ' << v << '\n';
   }
   os << '\n';
   if(not ports.empty()){
@@ -443,14 +441,14 @@ struct Action: pegtl::nothing<T>
 {};
 
 // TODO: RuleQuote
-struct Quote: pegtl::string<'"'>
+struct RuleQuote: pegtl::string<'"'>
 {};
 
-struct QuotedString: pegtl::if_must<Quote, pegtl::until<Quote>>
+struct RuleQuotedString: pegtl::if_must<RuleQuote, pegtl::until<RuleQuote>>
 {};
 
 // TODO: RuleHeaderValue
-struct Header: pegtl::plus<pegtl::seq<QuotedString, pegtl::star<RuleSpace, QuotedString>>>
+struct RuleHeaderValue: pegtl::plus<pegtl::seq<RuleQuotedString, pegtl::star<RuleSpace, RuleQuotedString>>>
 {};
 
 struct Divider: pegtl::any 
@@ -503,15 +501,18 @@ struct Action<BusDelimiter>
 
 //  Header Section -------------------------------------------------------------------------------- 
 
-// TODO: inline or constexpr
-const char* header_begin(const char* beg){
+
+template <typename Input>
+inline std::string RemoveHeaderKey(const Input&in, size_t offset){
+  auto beg = in.begin() + offset;
   while(std::isspace(*beg)){
     ++beg;
+    ++offset;
   }
-  return beg;
+  return in.string().erase(0, offset);
 }
 
-struct RuleStandard: pegtl::seq<TAO_PEGTL_STRING("*SPEF"), pegtl::opt<RuleSpace, Header>>
+struct RuleStandard: pegtl::seq<TAO_PEGTL_STRING("*SPEF"), pegtl::opt<RuleSpace, RuleHeaderValue>>
 {};
 
 template<>
@@ -520,11 +521,11 @@ struct Action<RuleStandard>
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     // TODO: make the following search an utility
-    d.standard = in.string().erase(0, header_begin(in.begin()+sizeof("*SPEF"))-in.begin());
+    d.standard = RemoveHeaderKey(in, sizeof("*SPEF"));
   };
 };
 
-struct RuleDesign: pegtl::seq<TAO_PEGTL_STRING("*DESIGN"), pegtl::opt<RuleSpace, Header>>
+struct RuleDesign: pegtl::seq<TAO_PEGTL_STRING("*DESIGN"), pegtl::opt<RuleSpace, RuleHeaderValue>>
 {};
 
 template<>
@@ -532,11 +533,11 @@ struct Action<RuleDesign>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
-    d.design_name = in.string().erase(0, header_begin(in.begin()+sizeof("*DESIGN"))-in.begin());
+    d.design_name = RemoveHeaderKey(in, sizeof("*DESIGN"));
   };
 };
 
-struct RuleDate: pegtl::seq<TAO_PEGTL_STRING("*DATE"), pegtl::opt<RuleSpace, Header>>
+struct RuleDate: pegtl::seq<TAO_PEGTL_STRING("*DATE"), pegtl::opt<RuleSpace, RuleHeaderValue>>
 {};
 
 template<>
@@ -544,12 +545,12 @@ struct Action<RuleDate>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
-    d.date = in.string().erase(0, header_begin(in.begin()+sizeof("*DATE"))-in.begin());
+    d.date = RemoveHeaderKey(in, sizeof("*DATE"));
   };
 };
 
 
-struct RuleVendor: pegtl::seq<TAO_PEGTL_STRING("*VENDOR"), pegtl::opt<RuleSpace, Header>>
+struct RuleVendor: pegtl::seq<TAO_PEGTL_STRING("*VENDOR"), pegtl::opt<RuleSpace, RuleHeaderValue>>
 {};
 
 template<>
@@ -557,12 +558,12 @@ struct Action<RuleVendor>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
-    d.vendor = in.string().erase(0, header_begin(in.begin()+sizeof("*VENDOR"))-in.begin());
+    d.vendor = RemoveHeaderKey(in, sizeof("VENDOR"));
   };
 };
 
 
-struct RuleProgram: pegtl::seq<TAO_PEGTL_STRING("*PROGRAM"), pegtl::opt<RuleSpace, Header>>
+struct RuleProgram: pegtl::seq<TAO_PEGTL_STRING("*PROGRAM"), pegtl::opt<RuleSpace, RuleHeaderValue>>
 {};
 
 template<>
@@ -570,11 +571,11 @@ struct Action<RuleProgram>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
-    d.program = in.string().erase(0, header_begin(in.begin()+sizeof("*PROGRAM"))-in.begin());
+    d.program = RemoveHeaderKey(in, sizeof("*PROGRAM"));
   };
 };
 
-struct RuleVersion: pegtl::seq<TAO_PEGTL_STRING("*VERSION"), pegtl::opt<RuleSpace, Header>>
+struct RuleVersion: pegtl::seq<TAO_PEGTL_STRING("*VERSION"), pegtl::opt<RuleSpace, RuleHeaderValue>>
 {};
 
 template<>
@@ -582,11 +583,11 @@ struct Action<RuleVersion>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
-    d.version = in.string().erase(0, header_begin(in.begin()+sizeof("*VERSION"))-in.begin());
+    d.version = RemoveHeaderKey(in, sizeof("*VERSION"));
   };
 };
 
-struct RuleDesignFlow: pegtl::seq<TAO_PEGTL_STRING("*DESIGN_FLOW"), pegtl::opt<RuleSpace, Header>>
+struct RuleDesignFlow: pegtl::seq<TAO_PEGTL_STRING("*DESIGN_FLOW"), pegtl::opt<RuleSpace, RuleHeaderValue>>
 {};
 
 template<>
@@ -594,7 +595,7 @@ struct Action<RuleDesignFlow>
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
-    d.design_flow = in.string().erase(0, header_begin(in.begin()+sizeof("*DESIGN_FLOW"))-in.begin());
+    d.design_flow = RemoveHeaderKey(in, sizeof("*DESIGN_FLOW"));
   };
 };
 
@@ -620,14 +621,10 @@ struct Action<RuleUnit>
   template <typename Input>
   static bool apply(const Input& in, Spef& d){
     switch(in.peek_char(1)){
-      case 'T': d.time_unit = in.string().erase(0, header_begin(in.begin()+sizeof("*T_UNIT"))-in.begin());
-        break;
-      case 'C': d.capacitance_unit = in.string().erase(0, header_begin(in.begin()+sizeof("*C_UNIT"))-in.begin());
-        break;
-      case 'R': d.resistance_unit = in.string().erase(0, header_begin(in.begin()+sizeof("*R_UNIT"))-in.begin());
-        break;
-      case 'L': d.inductance_unit = in.string().erase(0, header_begin(in.begin()+sizeof("*L_UNIT"))-in.begin());
-        break;
+      case 'T': d.time_unit = RemoveHeaderKey(in, sizeof("*T_UNIT"));        break;
+      case 'C': d.capacitance_unit = RemoveHeaderKey(in, sizeof("*C_UNIT")); break;
+      case 'R': d.resistance_unit = RemoveHeaderKey(in, sizeof("*R_UNIT"));  break;
+      case 'L': d.inductance_unit = RemoveHeaderKey(in, sizeof("*L_UNIT"));  break;
       default: break;
     }
     return true;
@@ -658,7 +655,9 @@ struct Action<RuleNameMap>
   static void apply(const Input& in, Spef& d){
     // Skip the '*' 
     split_on_space(in.begin(), in.end(), d._tokens); 
-    d.name_map.try_emplace(std::string{d._tokens[0]}, std::string{d._tokens[1]});
+    size_t key = ::strtoul(&d._tokens[0][1], nullptr, 10);
+    d.name_map.try_emplace(key, std::string{d._tokens[1]});
+    //d.name_map.try_emplace(std::string{d._tokens[0]}, std::string{d._tokens[1]});
   }
 };
 
@@ -718,7 +717,6 @@ struct Action<RulePort>
         d.ports.back().direction = ConnectionDirection::INOUT;
         break;
       default:
-        std::cout << "Unknown port type!\n";
         return false;
         break;
     }
@@ -811,9 +809,10 @@ struct Action<RuleConn>
       }
       else{
         // TODO: remove cout (check the entire file...)
-        std::cout << "Unknown connection information!\n";
+        throw pegtl::parse_error("Unrecognized token in CONN section", in);
       }
     }
+
   }
 };
 
@@ -839,7 +838,7 @@ struct Action<RuleCapGround>
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     split_on_space(in.begin(), in.end(), d._tokens);
-    // we don't care the first numbering token
+    // Ignore the first numbering token
     d._current_net->caps.emplace_back(
       std::forward_as_tuple(d._tokens[1], "", std::strtof(d._tokens[2].data(), nullptr))
     );
@@ -928,7 +927,7 @@ struct Action<RuleInputEnd>
   template <typename Input>
   static void apply(const Input& in, Spef& d){
     if(in.size() != 0){
-      throw tao::pegtl::parse_error("Unrecognized token", in);
+      throw pegtl::parse_error("Unrecognized token", in);
     }
   }
 };
@@ -996,15 +995,16 @@ const std::string Control<T>::error_message =
 
 
 // TODO: mutiplie definitions...
-std::string file_to_memory(const std::experimental::filesystem::path &p){
+inline std::string file_to_memory(const std::experimental::filesystem::path &p){
   if(not std::experimental::filesystem::exists(p)){
-    std::cout << "The provided path does not exist!\n";
+    std::cerr << "The provided path does not exist!\n";
     return "";
   }
   std::ifstream ifs(p);
 
   ifs.seekg(0, std::ios::end);
-  std::string buffer(ifs.tellg(), ' ');
+  std::string buffer;
+  buffer.resize(ifs.tellg());
   ifs.seekg(0);
   ifs.read(&buffer[0], buffer.size()); 
   ifs.close();
@@ -1014,7 +1014,6 @@ std::string file_to_memory(const std::experimental::filesystem::path &p){
 inline bool Spef::read(const std::experimental::filesystem::path &p){
   auto buffer {file_to_memory(p)};
   if(buffer.empty()){
-    std::cout << "Error in reading file into memory, buffer is empty!\n";
     return false;
   }
 
@@ -1040,17 +1039,17 @@ inline bool Spef::read(const std::experimental::filesystem::path &p){
   }
   catch(const tao::pegtl::parse_error& e){
     // TODO: use cerr instead of cout ...
-    std::cout << e.what() << std::endl;
+    std::cerr << e.what() << '\n';
     const auto p = e.positions.front();
-    std::cout << "Fail at line " << p.line << ":\n";
-    std::cout << "  " << in.line_as_string(p) << '\n';
-    std::cout << "  " << std::string(p.byte_in_line, ' ') << "^" << '\n';
+    std::cerr << "Fail at line " << p.line << ":\n";
+    std::cerr << "  " << in.line_as_string(p) << '\n';
+    std::cerr << "  " << std::string(p.byte_in_line, ' ') << "^" << '\n';
     return false;
   }
 }
 
 inline void string_expansion(std::string& str, 
-  const std::unordered_map<size_t, std::string_view>& mapping){
+  const std::unordered_map<size_t, std::string>& mapping){
   if(str.empty() or mapping.empty()) return ;
   size_t beg {str.size()};
   size_t end {0};
@@ -1088,40 +1087,40 @@ inline void Spef::expand_name(){
 }
 
 inline void Spef::expand_name(Port& port){
-  if(_name_map.empty()){
-    size_t key;
-    for(auto& [k, v]: name_map){
-      key = ::strtoul(&k.data()[1], nullptr, 10);
-      _name_map.emplace(key, v);
-    }
-  } 
-  string_expansion(port.name, _name_map);
+  //if(_name_map.empty()){
+  //  size_t key;
+  //  for(auto& [k, v]: name_map){
+  //    key = ::strtoul(&k.data()[1], nullptr, 10);
+  //    _name_map.emplace(key, v);
+  //  }
+  //} 
+  string_expansion(port.name, name_map);
 }
 
 
 inline void Spef::expand_name(Net& net){
-  if(_name_map.empty()){
-    size_t key;
-    for(auto& [k, v]: name_map){
-      key = ::strtoul(&k.data()[1], nullptr, 10);
-      _name_map.emplace(key, v);
-    }
-  }
+  //if(_name_map.empty()){
+  //  size_t key;
+  //  for(auto& [k, v]: name_map){
+  //    key = ::strtoul(&k.data()[1], nullptr, 10);
+  //    _name_map.emplace(key, v);
+  //  }
+  //}
 
-  string_expansion(net.name, _name_map);
+  string_expansion(net.name, name_map);
   for(auto &c : net.connections){
-    string_expansion(c.name, _name_map);
-    string_expansion(c.driving_cell, _name_map);
+    string_expansion(c.name, name_map);
+    string_expansion(c.driving_cell, name_map);
   }
 
   for(auto &t: net.caps){
-    string_expansion(std::get<0>(t), _name_map);
-    string_expansion(std::get<1>(t), _name_map);
+    string_expansion(std::get<0>(t), name_map);
+    string_expansion(std::get<1>(t), name_map);
   }
 
   for(auto &r: net.ress){
-    string_expansion(std::get<0>(r), _name_map);
-    string_expansion(std::get<1>(r), _name_map);
+    string_expansion(std::get<0>(r), name_map);
+    string_expansion(std::get<1>(r), name_map);
   }
 }
 
