@@ -4,6 +4,8 @@ MESSAGE(STATUS "CMAKE_ROOT: " ${CMAKE_ROOT})
 # Project name
 project(Parser-SPEF)
 
+include(CTest)
+
 # Turn on the verbose
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
