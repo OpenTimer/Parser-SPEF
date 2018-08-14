@@ -145,7 +145,7 @@ to run the unit tests:
 ```
 
 ## Examples
-The folder [example] contains a [simple.cpp] that parses a given SPEF file and dumps to screen. The folder [benchmark] contains SPEF files from [TAU 2015 contest] and can be supplied as inputs to the [simple.cpp].
+The folder [example] contains a [simple.cpp] that parses a given SPEF file and dumps to screen. The folder [benchmark] contains SPEF files from [TAU 2014], [TAU 2015] and [TAU 2016] contests and can be supplied as inputs to the [simple.cpp].
 
 | Example | Description | How to Run ? |
 | ------------- |:-------------| :--------------|
@@ -269,6 +269,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 [example]:               https://github.com/OpenTimer/Parser-SPEF/tree/master/example
 [benchmark]:             https://github.com/OpenTimer/Parser-SPEF/tree/master/benchmark  
 [unittest]:              https://github.com/OpenTimer/Parser-SPEF/tree/master/unittest
-[TAU 2015 contest]:      http://www.tauworkshop.com/2015/contest.html
+[TAU 2014]:      https://sites.google.com/site/taucontest2014/home
+[TAU 2015]:      http://www.tauworkshop.com/2015/contest.html
+[TAU 2016]:      https://sites.google.com/site/taucontest2016/home
 [simple.cpp]:            https://github.com/OpenTimer/Parser-SPEF/tree/master/example/simple.cpp
 
