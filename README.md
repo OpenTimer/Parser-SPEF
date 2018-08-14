@@ -50,8 +50,9 @@ int main(){
 
 You only need a C++ compiler with C++17 support to compile Parser-SPEF.
 
-```bash
-~$ g++ -std=c++17 -I Parser-SPEF/ example.cpp -lstc++fs -o example
+```bash 
+~$ cd doc
+~$ g++ -std=c++17 -I ../ example.cpp -lstdc++fs -o example
 ```
 
 # Use Parser-SPEF
