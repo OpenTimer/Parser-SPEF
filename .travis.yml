@@ -34,5 +34,5 @@ script:
   - cd build
   - cmake ../ && make
   - make test 
-  - ctest -T memcheck
+  - travis_wait ctest -T memcheck
 
