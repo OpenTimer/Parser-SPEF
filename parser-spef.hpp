@@ -18,7 +18,7 @@
 #include <fstream>
 #include <cmath>
 
-namespace spef{
+namespace spef {
 
 // ------------------------------------------------------------------------------------------------
 // Parser-SPEF stores the data to the folloing data structures.
