@@ -24,6 +24,9 @@ namespace spef{
 // Parser-SPEF stores the data to the folloing data structures.
 // ------------------------------------------------------------------------------------------------
 
+// Visit https://en.wikipedia.org/wiki/Standard_Parasitic_Exchange_Format 
+// first to understand what are essential field in a SPEF.
+
 // ConnectionType: 
 //   EXTERNAL: connection to a external port (*P)
 //   INTERNAL: connection to a cell instance (*I)
@@ -63,11 +66,12 @@ struct Connection {
 };
 
 // Net: the data in a *D_NET section
+//   - Capacitor can be ground (one node) or coupled (two nodes)
 struct Net {
   std::string name;
   float lcap;
   std::vector<Connection> connections;
-  std::vector<std::tuple<std::string, std::string, float>> caps;
+  std::vector<std::tuple<std::string, std::string, float>> caps;  
   std::vector<std::tuple<std::string, std::string, float>> ress;
 
   Net() = default;
@@ -75,7 +79,7 @@ struct Net {
 };
 
 // Spef: the data in a SPEF.
-//   There are four parts: header, name map, ports, nets.
+// There are four parts: header, name map, ports, nets.
 struct Spef {
 
   struct Error {
@@ -1090,9 +1094,15 @@ inline void expand_string(std::string& str,
 
 // Procedure: expand all mappings in the SPEF file
 inline void Spef::expand_name(){
+
+  if(name_map.empty()) {
+    return;
+  }
+
   for(auto &p: ports){
     expand_name(p);
   }
+
   for(auto &n: nets){
     expand_name(n);
   }

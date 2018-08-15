@@ -35,22 +35,33 @@ int main(int argc, char* argv[]){
   std::cout << spef.capacitance_unit << '\n';
   std::cout << spef.resistance_unit  << '\n';
   std::cout << spef.inductance_unit  << '\n';
+  std::cout << '\n';
 
-  for(const auto& [k, v] : spef.name_map){
-    std::cout << k << ' ' << v << '\n';
-  }
-
-  for(const auto &p : spef.ports){
-    std::cout << p.name << ' ';
-    switch(p.direction){
-      case spef::ConnectionDirection::INPUT:  std::cout << 'I' << '\n'; break;
-      case spef::ConnectionDirection::OUTPUT: std::cout << 'O' << '\n'; break;
-      case spef::ConnectionDirection::INOUT:  std::cout << 'B' << '\n'; break;
+  spef.expand_name();
+  
+  if(!spef.name_map.empty()) {
+    std::cout << "*NAME_MAP\n";
+    for(const auto& [k, v] : spef.name_map){
+      std::cout << '*' << k << ' ' << v << '\n';
     }
+    std::cout << '\n';
+  }
+  
+  if(!spef.ports.empty()) {
+    std::cout << "*PORTS\n";
+    for(const auto &p : spef.ports){
+      std::cout << p.name << ' ';
+      switch(p.direction){
+        case spef::ConnectionDirection::INPUT:  std::cout << 'I' << '\n'; break;
+        case spef::ConnectionDirection::OUTPUT: std::cout << 'O' << '\n'; break;
+        case spef::ConnectionDirection::INOUT:  std::cout << 'B' << '\n'; break;
+      }
+    }
+    std::cout << '\n';
   }
 
   for(const auto &n : spef.nets){
-    std::cout << n.name << ' ' << n.lcap << '\n';
+    std::cout << "*D_NET " << n.name << ' ' << n.lcap << '\n';
     // *CONN 
     std::cout << "*CONN\n";
     for(const auto& c : n.connections){
@@ -88,7 +99,6 @@ int main(int argc, char* argv[]){
       auto& [node1, node2, value] = r;
       std::cout << node1 << ' ' << node2 << ' ' << value << '\n';
     }
-
     std::cout << "*END\n\n";
   }
 
