@@ -205,9 +205,8 @@ inline std::ostream& operator<<(std::ostream& os, const ConnectionDirection& c)
     case ConnectionDirection::OUTPUT : os << 'O';  break;
     case ConnectionDirection::INOUT  : os << 'B';  break;
   }
-	return os;
+  return os;
 }
-
 
 inline std::ostream& operator<<(std::ostream& os, const Port& p)  
 {  
@@ -219,7 +218,6 @@ inline std::ostream& operator<<(std::ostream& os, const Port& p)
   }
   return os;  
 }  
-
 
 inline bool operator == (const Connection& lhs, const Connection& rhs) {
 
@@ -266,7 +264,6 @@ inline bool operator == (const Connection& lhs, const Connection& rhs) {
 inline bool operator != (const Connection& lhs, const Connection& rhs) {
   return not (lhs == rhs);
 }
-
 
 inline std::ostream& operator<<(std::ostream& os, const Connection& c)
 {
