@@ -1,5 +1,4 @@
-#ifndef SPEF_HPP_
-#define SPEF_HPP_
+#pragma once
 
 #include <pegtl/pegtl.hpp>
 #include <iostream>
@@ -1149,6 +1148,5 @@ inline void Spef::expand_name(Net& net){
 }
 
 
-};    // end of namespace spef. --------------------------------------------------------------------
+}; // end of namespace spef. ----------------------------------------------------------------------
 
-#endif
