@@ -1,7 +1,7 @@
 #ifndef SPEF_HPP_
 #define SPEF_HPP_
 
-#include <pegtl/include/tao/pegtl.hpp>
+#include <pegtl/pegtl.hpp>
 #include <iostream>
 #include <iomanip>
 #include <cstring>
