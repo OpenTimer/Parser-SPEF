@@ -62,6 +62,8 @@ struct Connection {
   std::string driving_cell;
 
   Connection() = default;
+
+  void scale_capacitance(float);
 };
 
 // Net: the data in a *D_NET section
@@ -75,6 +77,9 @@ struct Net {
 
   Net() = default;
   Net(const std::string& s, const float f): name{s}, lcap{f} {}
+
+  void scale_capacitance(float);
+  void scale_resistance(float);
 };
 
 // Spef: the data in a SPEF.
@@ -117,6 +122,8 @@ struct Spef {
   void expand_name();              // Expand everything
   void expand_name(Net&);
   void expand_name(Port&);
+  void scale_capacitance(float);
+  void scale_resistance(float);
 
   template <typename T>
   friend struct Action;
