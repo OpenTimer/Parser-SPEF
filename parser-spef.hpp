@@ -362,10 +362,48 @@ inline std::ostream& operator<<(std::ostream& os, const Net& n)
   os << "*END\n";
   return os;  
 }
+
+
+inline void Connection::scale_capacitance(float scale){
+  if(load.has_value()){
+    load = (*load)*scale;
+  }
+}
+
+
+inline void Net::scale_capacitance(float scale){
+  lcap *= scale;
+  for(auto &c : connections){
+    c.scale_capacitance(scale);
+  }
+
+  for(auto &cap : caps){
+    std::get<float>(cap) *= scale;
+  }
+}
+
+inline void Net::scale_resistance(float scale){
+  for(auto &res : ress){
+    std::get<float>(res) *= scale;
+  }
+}
  
 // --------------------------------------------------------
 // Begin Spef definition
 // --------------------------------------------------------
+
+inline void Spef::scale_capacitance(float scale){
+  for(auto &n : nets){
+    n.scale_capacitance(scale);
+  }
+}
+
+inline void Spef::scale_resistance(float scale){
+  for(auto &n : nets){
+    n.scale_resistance(scale);
+  }
+}
+
 inline void Spef::clear(){
 
   standard.clear();
