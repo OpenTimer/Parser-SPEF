@@ -378,13 +378,13 @@ inline void Net::scale_capacitance(float scale){
   }
 
   for(auto &cap : caps){
-    std::get<float>(cap) *= scale;
+    std::get<2>(cap) *= scale;
   }
 }
 
 inline void Net::scale_resistance(float scale){
   for(auto &res : ress){
-    std::get<float>(res) *= scale;
+    std::get<2>(res) *= scale;
   }
 }
  
