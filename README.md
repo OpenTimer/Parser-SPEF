@@ -6,7 +6,7 @@ A Fast C++ Header-only Parser for Standard Parasitic Exchange Format (SPEF).
 # Get Started with Parser-SPEF
 
 A [Standard Parasitic Exchange Format][SPEF] file records the parasitics of nets in a
-circuit. For more details about the SPEF, please refer to the [SPEF format].
+circuit. 
 
 <img src="image/circuit.png" width="37%" align="right"> 
 
@@ -32,7 +32,7 @@ circuit. For more details about the SPEF, please refer to the [SPEF format].
 *END                   // End of NET section
 ```
 
-The following [example.cpp](doc/example.cpp) shows how to read and parse a SPEF:
+For more details about the SPEF, please refer to the [SPEF format]. The following [example.cpp](doc/example.cpp) shows how to read and parse a SPEF:
 
 ```cpp
 #include <parser-spef.hpp>   // Parser-SPEF is header-only
