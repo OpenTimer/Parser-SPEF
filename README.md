@@ -6,7 +6,7 @@ A Fast C++ Header-only Parser for Standard Parasitic Exchange Format (SPEF).
 # Get Started with Parser-SPEF
 
 A [Standard Parasitic Exchange Format][SPEF] file records the parasitics of nets in a
-circuit.
+circuit. For more details about the SPEF, please refer to the [SPEF format].
 
 <img src="image/circuit.png" width="37%" align="right"> 
 
@@ -218,4 +218,5 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 [TAU 2015]:        http://www.tauworkshop.com/2015/contest.html
 [TAU 2016]:        https://sites.google.com/site/taucontest2016/home
 [simple.cpp]:      https://github.com/OpenTimer/Parser-SPEF/tree/master/example/simple.cpp
+[SPEF format]:     https://github.com/OpenTimer/OpenTimer/wiki/SPEF 
 
