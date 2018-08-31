@@ -114,12 +114,12 @@ struct Spef {
   std::optional<Error> error;
 
   std::string dump() const;
-
-  void clear();
+  std::string dump_compact() const;
 
   bool read(const std::experimental::filesystem::path &);
 
-  void expand_name();              // Expand everything
+  void clear();
+  void expand_name();
   void expand_name(Net&);
   void expand_name(Port&);
   void scale_capacitance(float);
