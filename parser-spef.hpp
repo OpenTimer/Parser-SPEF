@@ -9,6 +9,7 @@
 #include <cassert>
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <tuple>
 #include <array>
 #include <string_view>
@@ -472,6 +473,92 @@ inline std::string Spef::dump() const {
   }
   return os.str();
 }
+
+// Procedure: dump the Spef to a string in SPEF format
+inline std::string Spef::dump_compact() const {
+  if(not name_map.empty()){
+    return dump();
+  }
+  std::ostringstream os;
+  os 
+    << "*SPEF "          <<  standard         << '\n' 
+    << "*DESIGN "        <<  design_name      << '\n' 
+    << "*DATE "          <<  date             << '\n' 
+    << "*VENDOR "        <<  vendor           << '\n'
+    << "*PROGRAM "       <<  program          << '\n'
+    << "*VERSION "       <<  version          << '\n'
+    << "*DESIGN_FLOW "   <<  design_flow      << '\n'
+    << "*DIVIDER "       <<  divider          << '\n'
+    << "*DELIMITER "     <<  delimiter        << '\n'
+    << "*BUS_DELIMITER " <<  bus_delimiter    << '\n'
+    << "*T_UNIT "        <<  time_unit        << '\n'
+    << "*C_UNIT "        <<  capacitance_unit << '\n'
+    << "*R_UNIT "        <<  resistance_unit  << '\n'
+    << "*L_UNIT "        <<  inductance_unit  << '\n'
+  ;
+  os << '\n';
+
+  std::vector<Port> port_copy = ports;
+  std::vector<Net> net_copy = nets;
+  std::unordered_map<std::string, size_t> nm;
+  auto replace_name = [&](std::string& str){
+    if(str.empty()) return;
+    if(auto pos=str.find(delimiter); pos!=std::string::npos){
+       auto prefix = str.substr(0, pos);
+       nm.try_emplace(prefix, nm.size()+1);
+       str = '*' + std::to_string(nm.at(prefix)) + str.substr(pos, str.size()-pos);
+    }
+    else{
+       nm.try_emplace(str, nm.size()+1);
+       str = '*' + std::to_string(nm.at(str));
+    }
+  };
+
+  // Construct namp map
+  for(auto&p : port_copy){
+    replace_name(p.name);
+  }
+
+  for(auto&net : net_copy){
+    replace_name(net.name);
+
+    for(auto &c : net.connections){
+      replace_name(c.name);
+      replace_name(c.driving_cell);
+    }
+
+    for(auto &t: net.caps){
+      replace_name(std::get<0>(t));
+      replace_name(std::get<1>(t));
+    }
+
+    for(auto &r: net.ress){
+      replace_name(std::get<0>(r));
+      replace_name(std::get<1>(r));
+    }
+  }
+
+  if(not nm.empty()){
+    os << "*NAME_MAP\n";
+  }
+  for(const auto& [k,v]: nm){
+    os << '*' << v << ' ' << k << '\n';
+  }
+  os << '\n';
+
+  if(not port_copy.empty()){
+    os << "*PORTS\n";
+  }
+  for(const auto& p: port_copy){
+    os << p << '\n';
+  }
+  os << '\n';
+  for(const auto& net : net_copy) {
+    os << net << '\n';
+  }
+  return os.str();
+}
+
 
 // Operator: <<
 inline std::ostream& operator << (std::ostream& os, const Spef::Error& err) {
