@@ -1,6 +1,5 @@
 #pragma once
 
-#include <pegtl/pegtl.hpp>
 #include <iostream>
 #include <iomanip>
 #include <cstring>
@@ -17,6 +16,8 @@
 #include <experimental/filesystem>
 #include <fstream>
 #include <cmath>
+
+#include "pegtl/pegtl.hpp"
 
 namespace spef {
 
@@ -116,15 +117,17 @@ struct Spef {
 
   std::string dump() const;
   std::string dump_compact() const;
-
-  bool read(const std::experimental::filesystem::path &);
-
+  
+  void dump(std::ostream&) const;
+  void dump_compact(std::ostream&) const;
   void clear();
   void expand_name();
   void expand_name(Net&);
   void expand_name(Port&);
   void scale_capacitance(float);
   void scale_resistance(float);
+  
+  bool read(const std::experimental::filesystem::path &);
 
   template <typename T>
   friend struct Action;
@@ -433,9 +436,16 @@ inline void Spef::clear(){
   _tokens.clear();
 }
 
-// Procedure: dump the Spef to a string in SPEF format
-inline std::string Spef::dump() const {
+// Procedure: dump
+// dump the spef data structrue to a SPEF
+inline std::string Spef::dump() const  {
   std::ostringstream os;
+  dump(os);
+  return os.str();
+}
+
+// Procedure: dump
+inline void Spef::dump(std::ostream& os) const {
   os 
     << "*SPEF "          <<  standard         << '\n' 
     << "*DESIGN "        <<  design_name      << '\n' 
@@ -471,15 +481,22 @@ inline std::string Spef::dump() const {
   for(const auto& net : nets) {
     os << net << '\n';
   }
+}
+
+// Function: dump_compact
+inline std::string Spef::dump_compact() const {
+  std::ostringstream os;
+  dump_compact(os);
   return os.str();
 }
 
-// Procedure: dump the Spef to a string in SPEF format
-inline std::string Spef::dump_compact() const {
+// Procedure: dump_compact
+inline void Spef::dump_compact(std::ostream& os) const {
+
   if(not name_map.empty()){
-    return dump();
+    return;
   }
-  std::ostringstream os;
+
   os 
     << "*SPEF "          <<  standard         << '\n' 
     << "*DESIGN "        <<  design_name      << '\n' 
@@ -556,7 +573,6 @@ inline std::string Spef::dump_compact() const {
   for(const auto& net : net_copy) {
     os << net << '\n';
   }
-  return os.str();
 }
 
 
@@ -1237,30 +1253,18 @@ inline void Spef::expand_name(){
   for(auto &n: nets){
     expand_name(n);
   }
+
+  name_map.clear();
 }
 
 
 // Procedure: expand the mapping in port name
 inline void Spef::expand_name(Port& port){
-  //if(_name_map.empty()){
-  //  size_t key;
-  //  for(auto& [k, v]: name_map){
-  //    key = ::strtoul(&k.data()[1], nullptr, 10);
-  //    _name_map.emplace(key, v);
-  //  }
-  //} 
   expand_string(port.name, name_map);
 }
 
 // Procedure: expand the mapping in a net, including the net name, pin names in each section
 inline void Spef::expand_name(Net& net){
-  //if(_name_map.empty()){
-  //  size_t key;
-  //  for(auto& [k, v]: name_map){
-  //    key = ::strtoul(&k.data()[1], nullptr, 10);
-  //    _name_map.emplace(key, v);
-  //  }
-  //}
 
   expand_string(net.name, name_map);
   for(auto &c : net.connections){

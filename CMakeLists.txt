@@ -23,7 +23,7 @@ message(STATUS "CMAKE_EXE_LINKER_FLAGS: " ${CMAKE_EXE_LINKER_FLAGS})
 
 # add the binary tree to the search path for include files
 include_directories(${PROJECT_SOURCE_DIR})
-include_directories(pegtl)
+include_directories(parser-spef)
 include_directories(doctest)
 
 
