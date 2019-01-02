@@ -110,6 +110,8 @@ struct Spef {
   std::string inductance_unit;
   
   std::unordered_map<size_t, std::string> name_map;
+  std::vector<std::string> power_nets;
+  std::vector<std::string> ground_nets;
   std::vector<Port> ports;
   std::vector<Net> nets;
 
@@ -427,6 +429,8 @@ inline void Spef::clear(){
   inductance_unit.clear();
 
   name_map.clear();
+  power_nets.clear();
+  ground_nets.clear();
   ports.clear();
   nets.clear();
 
@@ -469,6 +473,19 @@ inline void Spef::dump(std::ostream& os) const {
   }
   for(const auto& [k,v]: name_map){
     os << '*' << k << ' ' << v << '\n';
+  }
+  if(not power_nets.empty()){
+    os << "*POEWR_NETS\n";
+  }
+  for(const auto& p: power_nets){
+    os << p << '\n';
+  }
+  os << '\n';
+  if(not ground_nets.empty()){
+    os << "*GROUND_NETS\n";
+  }
+  for(const auto& p: ground_nets){
+    os << p << '\n';
   }
   os << '\n';
   if(not ports.empty()){
@@ -593,7 +610,149 @@ namespace pegtl = tao::TAO_PEGTL_NAMESPACE;
 
 using RuleToken = pegtl::until<pegtl::at<pegtl::sor<pegtl::space, pegtl::one<'*'>, pegtl::eof>>>;
 using RuleDontCare = pegtl::star<pegtl::space>;
-using RuleSpace = pegtl::plus<pegtl::space>;
+using RuleSpace = pegtl::plus<pegtl::space>; 
+
+
+// ------------------------------------------------------------------------------------------------
+// Number Rules for SPEF names
+// ------------------------------------------------------------------------------------------------
+
+struct RuleSign: pegtl::one<'+','-'> 
+{};
+
+struct RuleInteger: pegtl::seq<pegtl::opt<RuleSign>, pegtl::plus<pegtl::digit>>
+{};
+
+struct RuleDecimal: pegtl::seq<pegtl::opt<RuleSign>, pegtl::plus<pegtl::digit>, pegtl::one<'.'>, pegtl::star<pegtl::digit>>
+{};
+
+struct RuleFraction: pegtl::seq<pegtl::opt<RuleSign>, pegtl::one<'.'>, pegtl::plus<pegtl::digit>>
+{};
+
+struct RuleExpChar: pegtl::one<'E', 'e'>
+{};
+
+struct RuleRadix: pegtl::sor<RuleDecimal, RuleFraction>
+{};
+
+struct RuleExp: pegtl::seq<RuleRadix, RuleExpChar, RuleInteger>
+{};
+
+struct RuleFloat: pegtl::sor<RuleExp, RuleDecimal, RuleFraction>
+{};
+
+struct RuleNumber: pegtl::sor<RuleFloat, RuleInteger>
+{};
+
+struct RulePosInteger: pegtl::plus<pegtl::digit>
+{};
+
+struct RulePosDecimal: pegtl::seq<pegtl::plus<pegtl::digit>, pegtl::one<'.'>, pegtl::star<pegtl::digit>>
+{};
+
+struct RulePosFraction: pegtl::seq<pegtl::one<'.'>, pegtl::plus<pegtl::digit>>
+{}; 
+
+struct RulePosRadix: pegtl::sor<RulePosFraction, RulePosDecimal, RulePosInteger>
+{};
+
+struct RulePosExp: pegtl::seq<RulePosRadix, RuleExpChar, RuleInteger>
+{};
+
+struct RulePosFloat: pegtl::sor<RulePosExp, RulePosExp, RulePosDecimal>
+{};
+
+struct RulePosNumber: pegtl::sor<RulePosFloat, RulePosInteger>
+{};
+
+// ------------------------------------------------------------------------------------------------
+// End of Number Rules for SPEF names
+// ------------------------------------------------------------------------------------------------
+
+
+
+// ------------------------------------------------------------------------------------------------
+// Grammar Rules for SPEF names
+// ------------------------------------------------------------------------------------------------
+
+struct RuleSpecialChar: pegtl::one<'!','#','$','%','&','`','(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[','\\',']','^','{','|','}','~'> 
+{};
+
+struct RuleEscapedCharSet: pegtl::sor<RuleSpecialChar, pegtl::one<'"'>>
+{};
+
+struct RuleEscapedChar: pegtl::seq<pegtl::one<'\\'>, RuleEscapedCharSet>   
+{}; 
+
+struct RuleIdentifierChar: pegtl::sor<RuleEscapedChar, pegtl::ascii::alpha, pegtl::ascii::digit, pegtl::one<'_'>> 
+{};
+
+struct RuleIdentifier: pegtl::plus<RuleIdentifierChar> 
+{};
+
+// Hierarchical delimiter
+struct RuleHchar: pegtl::one<'.','/',':','|'>
+{};
+
+struct RulePrefixBusDelim: pegtl::one<'[','{','(','<',':','.'>
+{};
+
+struct RuleSuffixBusDelim: pegtl::one<']','}',')','>'>
+{};
+
+// There is a confusion problem between RuleBitIdentifier & RulePartialPath here:
+//  PEG will greedily match which causes the problem: https://github.com/taocpp/PEGTL/issues/135
+struct RuleBitIdentifier: pegtl::sor<pegtl::seq<RuleIdentifier, RulePrefixBusDelim, pegtl::plus<pegtl::ascii::digit>, pegtl::opt<RuleSuffixBusDelim>>, RuleIdentifier>
+{};
+
+struct RulePartialPath: pegtl::seq<RuleIdentifier, RuleHchar> 
+{};
+
+
+
+// This rule is the half part of RuleBitIdentifier. We need this rule to disambiguate the RulePartialPath & RuleBitIdentifier
+struct RulePathEnd: pegtl::sor<
+  pegtl::seq<pegtl::seq<RulePrefixBusDelim, pegtl::plus<pegtl::ascii::digit>, pegtl::opt<RuleSuffixBusDelim>>, pegtl::space>,
+  pegtl::seq<RuleHchar, RuleIdentifier, pegtl::space>
+>
+{};
+
+struct RulePath: pegtl::seq<pegtl::opt<RuleHchar>, pegtl::sor<pegtl::seq<RuleBitIdentifier, pegtl::space>,
+  pegtl::seq<RulePartialPath, pegtl::sor<pegtl::seq<RuleIdentifier, pegtl::space>, pegtl::seq<RuleIdentifier, pegtl::star< 
+    pegtl::sor<RulePathEnd, pegtl::seq<pegtl::not_at<RulePathEnd>, pegtl::seq<RuleHchar, RuleIdentifier>>>
+   >
+   >>
+>>>
+{};
+
+
+
+
+
+
+
+struct RuleQstringChar: pegtl::sor<RuleSpecialChar, pegtl::ascii::alpha, pegtl::ascii::digit, pegtl::space, pegtl::one<'_'>>
+{};
+
+struct RuleQstring: pegtl::seq<pegtl::one<'"'>, pegtl::star<RuleQstringChar>, pegtl::one<'"'>>
+{};
+
+struct RuleName: pegtl::sor<RuleQstring, RuleIdentifier> 
+{};
+
+struct RulePartialPhysicalRef: pegtl::seq<RuleHchar, RuleName>
+{};
+
+// Need to enforce a space after this rule. 
+// Consider an example: dare_.9]  
+// If there is no space in the end, then the parser will match "dare_.9" and leave ']'
+// This happens in NameMap section where the RulePhysicalRef & RulePath cause this problem.
+struct RulePhysicalRef: pegtl::seq<RuleName, pegtl::star<RulePartialPhysicalRef>, pegtl::space>
+{};
+
+// ------------------------------------------------------------------------------------------------
+// End of Grammar Rules for SPEF names
+// ------------------------------------------------------------------------------------------------
 
 // The double_::rule does not check successive characters after digits. For example: 
 // 1.243abc still satisfies the double_::rule. This RuleDouble enforce the successive 
@@ -605,13 +764,7 @@ template<typename T>
 struct Action: pegtl::nothing<T>
 {};
 
-struct RuleQuote: pegtl::string<'"'>
-{};
-
-struct RuleQuotedString: pegtl::if_must<RuleQuote, pegtl::until<RuleQuote>>
-{};
-
-struct RuleHeaderValue: pegtl::plus<pegtl::seq<RuleQuotedString, pegtl::star<RuleSpace, RuleQuotedString>>>
+struct RuleHeaderValue: pegtl::plus<pegtl::seq<RuleQstring, pegtl::star<RuleSpace, RuleQstring>>>
 {};
 
 struct Divider: pegtl::any 
@@ -630,7 +783,7 @@ struct Action<Divider>
   };
 };
 
-struct Delimiter: pegtl::any 
+struct Delimiter: RuleHchar
 {};
 
 template<>
@@ -646,7 +799,7 @@ struct Action<Delimiter>
   };
 };
 
-struct BusDelimiter: pegtl::must<pegtl::any, pegtl::star<pegtl::space>, pegtl::any>
+struct BusDelimiter: pegtl::must<RulePrefixBusDelim, pegtl::star<pegtl::space>, pegtl::opt<RuleSuffixBusDelim>>
 {};
 
 template<>
@@ -797,7 +950,7 @@ struct Action<RuleUnit>
   }
 };
 
-//  Name Map Section -------------------------------------------------------------------------------
+//  Name Map Section ------------------------------------------------------------------------------- 
 struct RuleNameMapBeg: pegtl::seq<TAO_PEGTL_STRING("*NAME_MAP"), RuleDontCare>
 {};
 
@@ -808,23 +961,83 @@ struct Action<RuleNameMapBeg>
   static void apply(const Input& in, Spef& d){}
 };
 
+
+// Be careful about the Rule Order (sor means sequence or!) Put complex rules before simple rules!  
+// RuleIdentifier is a subset of RuleName 
+// RuleIdentifier is a subset of RuleBitIdentifier 
+// RuleName is a subset of RulePhysicalRef 
+// RuleBitIdentifier is a subset of RulePath
 struct RuleNameMap: pegtl::seq<
+  pegtl::not_at<TAO_PEGTL_STRING("*POWER_NETS")>, pegtl::not_at<TAO_PEGTL_STRING("*GROUND_NETS")>, 
+  pegtl::not_at<TAO_PEGTL_STRING("*GND_NETS")>, 
   pegtl::not_at<TAO_PEGTL_STRING("*PORTS")>, pegtl::not_at<TAO_PEGTL_STRING("*D_NET")>, 
-  TAO_PEGTL_STRING("*"), pegtl::must<RuleToken, RuleSpace, RuleToken>
+  pegtl::seq<TAO_PEGTL_STRING("*"), RulePosInteger, RuleSpace, pegtl::sor<RulePath, RulePhysicalRef>>
 >
 {};
+
 
 template <>
 struct Action<RuleNameMap>  
 {
   template <typename Input>
   static void apply(const Input& in, Spef& d){
-    // Skip the '*' 
-    split_on_space(in.begin(), in.end(), d._tokens); 
-    size_t key = ::strtoul(&d._tokens[0][1], nullptr, 10);
-    d.name_map.try_emplace(key, std::string{d._tokens[1]});
+    //std::cout << "NameMap = " << '-' << in.string() << '-' << '\n';
+    // NameMap format: key(*integer) value(non-quoted/quoted string)
+    // Skip the first '*' 
+    std::string s (in.string().erase(0,1));
+    size_t pos;
+    auto key = std::stoul(s, &pos);
+    while(std::isspace(s[pos])) pos ++;
+    d.name_map.try_emplace(key, s.substr(pos, s.size()-pos-1)); // last char is a space
   }
 };
+
+
+//  Power Section ---------------------------------------------------------------------------------
+
+struct RuleIndex: pegtl::seq<pegtl::one<'*'>, RulePosInteger>
+{};
+
+struct RuleNetName: pegtl::sor<RuleIndex, RulePhysicalRef, RulePath>
+{};
+
+struct RulePowerNetBeg: pegtl::seq<TAO_PEGTL_STRING("*POWER_NETS"), pegtl::plus<pegtl::space>>
+{};
+
+
+struct RulePowerNet: pegtl::seq<
+  pegtl::not_at<TAO_PEGTL_STRING("*GROUND_NETS")>, pegtl::not_at<TAO_PEGTL_STRING("*GND_NETS")>, pegtl::not_at<TAO_PEGTL_STRING("*PORTS")>, pegtl::not_at<TAO_PEGTL_STRING("*D_NET")>, RuleNetName>
+{};
+
+
+template <>
+struct Action<RulePowerNet>  
+{
+  template <typename Input>
+  static void apply(const Input& in, Spef& d){
+    d.power_nets.push_back(in.string());
+  }
+};
+
+
+struct RuleGroundNetBeg: pegtl::seq<pegtl::sor<TAO_PEGTL_STRING("*GROUND_NETS"), TAO_PEGTL_STRING("*GND_NETS")>, pegtl::plus<pegtl::space>>
+{};
+
+struct RuleGroundNet: pegtl::seq<pegtl::not_at<TAO_PEGTL_STRING("*PORTS")>, pegtl::not_at<TAO_PEGTL_STRING("*D_NET")>, RuleNetName>
+{};
+
+template <>
+struct Action<RuleGroundNet>  
+{
+  template <typename Input>
+  static void apply(const Input& in, Spef& d){
+    d.ground_nets.push_back(in.string());
+  }
+};
+
+
+
+
 
 //  Port Section ----------------------------------------------------------------------------------
 
@@ -1116,7 +1329,11 @@ struct RuleSpef: pegtl::must<
 
   pegtl::opt<RuleNameMapBeg, pegtl::star<pegtl::seq<RuleNameMap, RuleDontCare>>>,
 
-  pegtl::opt<RulePortBeg,    pegtl::star<pegtl::seq<RulePort, RuleDontCare>>>,
+  pegtl::opt<RulePowerNetBeg, pegtl::star<pegtl::seq<RulePowerNet, RuleDontCare>>>,
+
+  pegtl::opt<RuleGroundNetBeg, pegtl::star<pegtl::seq<RuleGroundNet, RuleDontCare>>>,
+
+  pegtl::opt<RulePortBeg, pegtl::star<pegtl::seq<RulePort, RuleDontCare>>>,
 
   pegtl::star<
     pegtl::if_must<
@@ -1199,6 +1416,7 @@ inline bool Spef::read(const std::experimental::filesystem::path &p){
   tao::pegtl::memory_input<pegtl::tracking_mode::LAZY> in(buffer, "");
 
   try{
+    //tao::pegtl::parse<spef::NameMap, spef::Action, spef::Control>(in, *this);
     tao::pegtl::parse<spef::RuleSpef, spef::Action, spef::Control>(in, *this);
     return true;
   }

@@ -11,8 +11,100 @@
 #include <cassert>
 #include <random>
 
+// Constants --------------------------------------------------------------------------------------
+const char special_char[] = {'!','#','$','%','&','`','(',')','*','+',',','-','.','/',':',';','<','=','>','?','@','[','\\',']','^','{','|','}','~'};   // 29
+const char delim[] = {'.', ':', '/', '|'};                      // 4
+const char prefix_bus_delim[] = {'[', '{', '(', '<', ':', '.'}; // 6
+const char suffix_bus_delim[] = {']', '}', ')', '>'};           // 4
+const char space[] = {' ', '\n', '\f', '\r', '\t', '\v'};       // 6
+const char hchar[] = {'.', '/', ':', '|'};
 
-// Utility ----------------------------------------------------------------------------------------
+#define RAND(NAME) NAME[rand()%(sizeof(NAME)/sizeof(NAME[0]))]
+
+// Utility ---------------------------------------------------------------------------------------- 
+
+char rand_digit() {
+  return '0' + rand()%10;
+}
+
+char rand_alpha() {
+  if(rand()%2) return 'a' + rand()%26;
+  else return 'A' + rand()%26;
+}
+
+
+std::string identifier() {
+  std::string s;
+  size_t sz = rand()%8 + 1;
+  for(size_t i=0; i<sz; i++) {
+    switch(rand()%4) {
+      case 0: s += '\\'; s+= RAND(special_char); break;
+      case 1: s += rand_alpha(); break;
+      case 2: s += rand_digit(); break;
+      default: s += '_'; break;
+    }
+  }
+  return s;
+}
+
+std::string qstring() {
+  std::string s("\"");
+  auto sz = rand() % 11; 
+  for(auto i=0; i<sz; i++) {
+    switch(rand()% 5) {
+      case 0: s += RAND(special_char); break;
+      case 1: s += rand_alpha(); break;
+      case 2: s += rand_digit(); break;
+      case 3: s += RAND(space); break;
+      default: s += '_'; break;
+    }
+  }
+  s += '"'; 
+  return s; 
+}
+
+std::string name() { 
+  return rand()%2 ? qstring() : identifier();
+}
+
+std::string bit_identifier() {
+  if(rand()%2) {
+    return identifier();
+  }
+  else {
+    std::string s(identifier() + RAND(prefix_bus_delim) + rand_digit());
+    if(rand()%2) s += rand_digit();
+    if(rand()%2) s += RAND(suffix_bus_delim);
+    return s;
+  }
+}
+
+std::string partial_path() {
+  return identifier() + RAND(hchar);
+}
+
+std::string path() {
+  if(rand()%2) {
+    return rand()%2 ? RAND(hchar) + bit_identifier() : bit_identifier();
+  }
+  else { 
+    std::string s;
+    if(rand()%2) 
+      s += RAND(hchar);
+    s += partial_path();
+    if(rand()%2) s += partial_path();
+    return s + bit_identifier();
+  }
+}
+
+std::string partial_physical_ref() {
+  return RAND(hchar) + name();
+}
+
+std::string physical_ref() {
+  return rand()%2 ? name() : name() + partial_physical_ref();
+}
+
 char valid_char(){
   // 33 - 126 are valid chars except 34(") and 39 (') 42(*)
   int c = rand()%94+33;
@@ -37,19 +129,20 @@ std::string rand_str(size_t sz){
 }
 
 
-//const std::vector<char> SPACE = {' ', '\f', '\n', '\r', '\t', '\v'};
-const std::vector<char> SPACE = {' ', '\n'};
 
-std::string space(){
-  std::string s(rand()%SPACE.size()+1, ' ');
-  std::generate(s.begin(), s.end(), [&](){return SPACE[rand()%SPACE.size()];});
+//const std::vector<char> SPACE = {' ', '\f', '\n', '\r', '\t', '\v'};
+//const std::vector<char> SPACE = {' ', '\n'};
+
+std::string rand_space(){
+  std::string s(rand()%6 + 1, ' ');
+  std::generate(s.begin(), s.end(), [&](){return space[rand()%6];});
   return s;
 }
 
 std::string dontcare(){
-  size_t sz {rand()%SPACE.size()};
+  int sz {rand()%6};
   std::string s(sz, ' ');
-  std::generate(s.begin(), s.end(), [&](){return SPACE[rand()%SPACE.size()];});
+  std::generate(s.begin(), s.end(), [&](){return space[rand()%6];});
   return s;
 }
 
@@ -68,14 +161,14 @@ std::string to_string(float f){
 
 std::string rand_port(spef::ConnectionDirection c, size_t len){
   std::string s {"*"};
-  s.append(rand_str(rand()%len+1)).append(space());
+  s.append(rand_str(rand()%len+1)).append(rand_space());
   switch(c){
     case spef::ConnectionDirection::INPUT:  s.append("I"); break;
     case spef::ConnectionDirection::OUTPUT: s.append("O"); break;
     case spef::ConnectionDirection::INOUT:  s.append("B"); break;
     default: break;
   }
-  s.append(space());
+  s.append(rand_space());
 
   if(rand()%2 == 0){
     return s;
@@ -85,12 +178,12 @@ std::string rand_port(spef::ConnectionDirection c, size_t len){
     if(num == 0) s.append("*C");
     else         s.append("*S");
     for(size_t i=0; i<2; i++){
-      s.append(space());
+      s.append(rand_space());
       s.append(to_string(rand_float()));
     }
   }
   else{
-    s.append("*L").append(space())
+    s.append("*L").append(rand_space())
      .append(to_string(rand_float()));
   }
   s.append(dontcare());
@@ -157,7 +250,7 @@ std::pair<std::string, std::vector<spef::Net>> rand_net(size_t len){
   for(const auto& n: nets){
   //for(size_t i=13 ; i<nets.size() and i < 14; i++){
   //  const auto &n {nets[i]};
-    s.append("*D_NET").append(space()).append(n.name).append(space())
+    s.append("*D_NET").append(rand_space()).append(n.name).append(rand_space())
      .append(to_string(n.lcap)).append(dontcare());
     // CONN 
     if(not n.connections.empty()){
@@ -168,7 +261,7 @@ std::pair<std::string, std::vector<spef::Net>> rand_net(size_t len){
           case spef::ConnectionType::EXTERNAL: s.append("*P"); break;
           default:break;
         }
-        s.append(space()).append(c.name).append(space());
+        s.append(rand_space()).append(c.name).append(rand_space());
         switch(c.direction){
           case spef::ConnectionDirection::INPUT:  s.append("I"); break;
           case spef::ConnectionDirection::INOUT:  s.append("B"); break;
@@ -177,19 +270,19 @@ std::pair<std::string, std::vector<spef::Net>> rand_net(size_t len){
         }
         // Add coordinate 
         if(c.coordinate.has_value()){
-          s.append(space()).append("*C")
-           .append(space()).append(to_string(std::get<0>(*c.coordinate)))
-           .append(space()).append(to_string(std::get<1>(*c.coordinate)));
+          s.append(rand_space()).append("*C")
+           .append(rand_space()).append(to_string(std::get<0>(*c.coordinate)))
+           .append(rand_space()).append(to_string(std::get<1>(*c.coordinate)));
         }
         // Add load 
         if(c.load.has_value()){
-          s.append(space()).append("*L")
-           .append(space()).append(to_string(*c.load));
+          s.append(rand_space()).append("*L")
+           .append(rand_space()).append(to_string(*c.load));
         }
         // Add driving cell
         if(not c.driving_cell.empty()){
-          s.append(space()).append("*D")
-           .append(space()).append(c.driving_cell);
+          s.append(rand_space()).append("*D")
+           .append(rand_space()).append(c.driving_cell);
         }
         s.append(dontcare());
       }
@@ -199,9 +292,9 @@ std::pair<std::string, std::vector<spef::Net>> rand_net(size_t len){
     if(not n.caps.empty()){
       s.append("*CAP").append(dontcare());
       for(size_t j=0; j<n.caps.size(); j++){
-        s.append(std::to_string(j+1)).append(space()).append(std::get<0>(n.caps[j]))
-         .append(space()).append(std::get<1>(n.caps[j])).append(space())
-         .append(to_string(std::get<2>(n.caps[j]))).append(space());
+        s.append(std::to_string(j+1)).append(rand_space()).append(std::get<0>(n.caps[j]))
+         .append(rand_space()).append(std::get<1>(n.caps[j])).append(rand_space())
+         .append(to_string(std::get<2>(n.caps[j]))).append(rand_space());
       }
     }
 
@@ -209,9 +302,9 @@ std::pair<std::string, std::vector<spef::Net>> rand_net(size_t len){
     if(not n.ress.empty()){
       s.append("*RES").append(dontcare());
       for(size_t j=0; j<n.ress.size(); j++){
-        s.append(std::to_string(j+1)).append(space()).append(std::get<0>(n.ress[j]))
-         .append(space()).append(std::get<1>(n.ress[j])).append(space())
-         .append(to_string(std::get<2>(n.ress[j]))).append(space());
+        s.append(std::to_string(j+1)).append(rand_space()).append(std::get<0>(n.ress[j]))
+         .append(rand_space()).append(std::get<1>(n.ress[j])).append(rand_space())
+         .append(to_string(std::get<2>(n.ress[j]))).append(rand_space());
       }
     }
 
@@ -306,10 +399,10 @@ TEST_CASE("Header.Fix"){
 
   auto add_space = [&](std::string& buf){
     if(auto num = rand()%3; num == 0){
-      buf.append(space());
+      buf.append(rand_space());
     }
     else if(num == 1){
-      buf.insert(0, space());
+      buf.insert(0, rand_space());
     }
   };
   auto add_data = [&](std::string& buf, const std::unordered_map<std::string, std::string>& values){
@@ -325,11 +418,11 @@ TEST_CASE("Header.Fix"){
         }
         if(rand()%2 == 0){ 
           // Add to back
-          buf.append(iter.first).append(space()).append(kvp.at(iter.first));
+          buf.append(iter.first).append(rand_space()).append(kvp.at(iter.first));
         }
         else{
           // Add to front
-          buf.insert(0, kvp.at(iter.first)).insert(0, space()).insert(0, iter.first);
+          buf.insert(0, kvp.at(iter.first)).insert(0, rand_space()).insert(0, iter.first);
         }
         add_space(buf);
       }
@@ -373,7 +466,7 @@ TEST_CASE("Header.Random"){
   const int str_length {20};
 
   auto rand_unit = [&](){
-    return to_string(rand_float()) + space() + 
+    return to_string(rand_float()) + rand_space() + 
       rand_str(rand()%str_length+1);
   };
  
@@ -390,21 +483,22 @@ TEST_CASE("Header.Random"){
 
     for(size_t i=0; i<headers.size(); ++i){
       if(headers[i] == "*DELIMITER" or headers[i] == "*DIVIDER"){
-        kvp.at(headers[i]) = rand_str(1);
+        kvp.at(headers[i]) = std::string(1, delim[rand()%4]); 
       }
       else if(headers[i] == "*BUS_DELIMITER"){
-        kvp.at(headers[i]) = rand_str(1) + dontcare() + rand_str(1);
+        kvp.at(headers[i]) = std::string(1, prefix_bus_delim[rand()%6]) + 
+                             dontcare() + std::string(1, suffix_bus_delim[rand()%4]);
       }
       else{
-        kvp.at(headers[i]) = '"' + rand_str(rand()%str_length+1) + '"';
+        kvp.at(headers[i]) = qstring();
       }
-      buffer.append(headers[i]).append(space())
+      buffer.append(headers[i]).append(rand_space())
         .append(kvp.at(headers[i])).append(dontcare());
     }
 
     for(size_t i=0; i<units.size(); ++i){
       kvp.at(units[i]) = rand_unit();
-      buffer.append(units[i]).append(space())
+      buffer.append(units[i]).append(rand_space())
         .append(kvp.at(units[i])).append(dontcare());
     }
 
@@ -435,18 +529,34 @@ TEST_CASE("NameMap"){
     name_map.clear();
 
     buffer = "*NAME_MAP";
-    buffer.append(dontcare());
+    buffer.append(rand_space());
 
     for(size_t i=0; i<name_map_num; ++i){
-      name_map.insert({(rand()%1000+1), rand_str(rand()%len+1)});
+      switch(rand()%5) {
+        case 0: name_map.insert({(rand()%1000+1), name()}); break;
+        case 1: name_map.insert({(rand()%1000+1), identifier()}); break;
+        case 2: name_map.insert({(rand()%1000+1), bit_identifier()}); break;
+        case 3: name_map.insert({(rand()%1000+1), path()}); break;
+        case 4: name_map.insert({(rand()%1000+1), physical_ref()}); break;
+      }
     }
 
     for(const auto& [k, v]: name_map){
-      buffer.append("*"+std::to_string(k)).append(space()).append(v).append(dontcare());
+      buffer.append("*"+std::to_string(k)).append(rand_space()).append(v).append(rand_space());
     }
 
     parse(data, buffer);
     REQUIRE(data.name_map == name_map);
+    //if(data.name_map != name_map) {
+    //  for(auto& [k, v] : data.name_map) {
+    //    if(name_map[k] != v) {
+    //      printf("Not the same as golden!\n");
+    //      std::cout << k << '\n';
+    //      std::cout << v << " <=> " << name_map[k] << '\n';
+    //      exit(1);
+    //    }
+    //  }
+    //}
   }
 }
 
