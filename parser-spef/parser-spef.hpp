@@ -13,7 +13,7 @@
 #include <array>
 #include <string_view>
 #include <optional>
-#include <experimental/filesystem>
+#include <filesystem>
 #include <fstream>
 #include <cmath>
 
@@ -127,7 +127,7 @@ struct Spef {
   void scale_capacitance(float);
   void scale_resistance(float);
   
-  bool read(const std::experimental::filesystem::path &);
+  bool read(const std::filesystem::path &);
 
   template <typename T>
   friend struct Action;
@@ -493,7 +493,7 @@ inline std::string Spef::dump_compact() const {
 // Procedure: dump_compact
 inline void Spef::dump_compact(std::ostream& os) const {
 
-  if(not name_map.empty()){
+  if(!name_map.empty()){
     dump(os);
     return;
   }
@@ -1156,9 +1156,9 @@ const std::string Control<T>::error_message =
 
 
 // Procedure:: file_to_memory reads the content of a file to a string buffer
-inline std::string file_to_memory(const std::experimental::filesystem::path &p){
+inline std::string file_to_memory(const std::filesystem::path &p){
 
-  if(not std::experimental::filesystem::exists(p)){
+  if(not std::filesystem::exists(p)){
     return "";
   }
 
@@ -1174,7 +1174,7 @@ inline std::string file_to_memory(const std::experimental::filesystem::path &p){
 }
 
 // Function: read
-inline bool Spef::read(const std::experimental::filesystem::path &p){
+inline bool Spef::read(const std::filesystem::path &p){
 
   auto buffer {file_to_memory(p)};
 
