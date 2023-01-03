@@ -16,3 +16,6 @@
 
 # CMake
 build/
+/unittest/benchmark
+/unittest/parser-spef-test
+/example/simple
